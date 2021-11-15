@@ -4,10 +4,10 @@
 
 |build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
 
-:Version: 0.2.0
-:Web: http://mode-streaming.readthedocs.org/
-:Download: http://pypi.org/project/mode-streaming
-:Source: http://github.com/faust-streaming/mode
+:Version: 0.1.0
+:Web: http://mode-ng.readthedocs.org/
+:Download: http://pypi.org/project/mode-ng
+:Source: http://github.com/lqhuang/mode-ng
 :Keywords: async, service, framework, actors, bootsteps, graph
 
 
@@ -254,7 +254,7 @@ or from source.
 
 To install using `pip`::
 
-    $ pip install -U mode-streaming
+    $ pip install -U mode-ng
 
 .. _installing-from-source:
 
@@ -262,12 +262,12 @@ Downloading and installing from source
 --------------------------------------
 
 Download the latest version of Mode from
-http://pypi.org/project/mode-streaming
+http://pypi.org/project/mode-ng
 
 You can install it by doing the following::
 
-    $ tar xvfz mode-streaming-0.2.0.tar.gz
-    $ cd mode-0.2.0
+    $ tar xvfz mode-ng-0.1.0.tar.gz
+    $ cd mode-0.1.0
     $ python setup.py build
     # python setup.py install
 
@@ -285,7 +285,7 @@ With pip
 You can install the latest snapshot of Mode using the following
 pip command::
 
-    $ pip install https://github.com/faust-streaming/mode/zipball/master#egg=mode-streaming
+    $ pip install https://github.com/lqhuang/mode-ng/zipball/master#egg=mode-ng
 
 FAQ
 ===
@@ -305,7 +305,7 @@ and you can install this as a bundle with Mode:
 
 .. sourcecode:: console
 
-    $ pip install -U mode-streaming[gevent]
+    $ pip install -U mode-ng[gevent]
 
 Then to actually use gevent as the event loop you have to
 execute the following in your entrypoint module (usually where you
@@ -330,7 +330,7 @@ and you can install this as a bundle with Mode:
 
 .. sourcecode:: console
 
-    $ pip install -U mode-streaming[eventlet]
+    $ pip install -U mode-ng[eventlet]
 
 Then to actually use eventlet as the event loop you have to
 execute the following in your entrypoint module (usually where you
@@ -462,25 +462,25 @@ reported by opening an issue or contacting one or more of the project maintainer
 This Code of Conduct is adapted from the Contributor Covenant,
 version 1.2.0 available at http://contributor-covenant.org/version/1/2/0/.
 
-.. |build-status| image:: https://travis-ci.com/faust-streaming/mode.png?branch=master
+.. |build-status| image:: https://travis-ci.com/lqhuang/mode-ng.png?branch=master
     :alt: Build status
-    :target: https://travis-ci.com/faust-streaming/mode
+    :target: https://travis-ci.com/lqhuang/mode-ng
 
-.. |coverage| image:: https://codecov.io/github/faust-streaming/mode/coverage.svg?branch=master
-    :target: https://codecov.io/github/faust-streaming/mode?branch=master
+.. |coverage| image:: https://codecov.io/github/lqhuang/mode-ng/coverage.svg?branch=master
+    :target: https://codecov.io/github/lqhuang/mode-ng?branch=master
 
-.. |license| image:: https://img.shields.io/pypi/l/mode-streaming.svg
+.. |license| image:: https://img.shields.io/pypi/l/mode-ng.svg
     :alt: BSD License
     :target: https://opensource.org/licenses/BSD-3-Clause
 
-.. |wheel| image:: https://img.shields.io/pypi/wheel/mode-streaming.svg
+.. |wheel| image:: https://img.shields.io/pypi/wheel/mode-ng.svg
     :alt: Mode can be installed via wheel
-    :target: http://pypi.org/project/mode-streaming/
+    :target: http://pypi.org/project/mode-ng/
 
-.. |pyversion| image:: https://img.shields.io/pypi/pyversions/mode-streaming.svg
+.. |pyversion| image:: https://img.shields.io/pypi/pyversions/mode-ng.svg
     :alt: Supported Python versions.
-    :target: http://pypi.org/project/mode-streaming/
+    :target: http://pypi.org/project/mode-ng/
 
-.. |pyimp| image:: https://img.shields.io/pypi/implementation/mode-streaming.svg
+.. |pyimp| image:: https://img.shields.io/pypi/implementation/mode-ng.svg
     :alt: Supported Python implementations.
-    :target: http://pypi.org/project/mode-streaming/
+    :target: http://pypi.org/project/mode-ng/

@@ -1,7 +1,7 @@
-:Version: 0.2.0
-:Web: http://mode-streaming.readthedocs.org/
-:Download: http://pypi.org/project/mode-streaming
-:Source: http://github.com/faust-streaming/mode
+:Version: 0.1.0
+:Web: http://mode-ng.readthedocs.org/
+:Download: http://pypi.org/project/mode-ng
+:Source: http://github.com/lqhuang/mode-ng
 :Keywords: async, service, framework, actors, bootsteps, graph
 
 What is Mode?
