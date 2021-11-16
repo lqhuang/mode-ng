@@ -5,7 +5,7 @@ include MANIFEST.in
 include setup.cfg
 include setup.py
 recursive-include docs *
-recursive-include extra/*
+recursive-include extra *
 recursive-include examples *
 recursive-include tests *
 recursive-include mode *.py *.html *.typed

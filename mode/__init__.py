@@ -17,6 +17,7 @@ from typing import Any, Mapping, NamedTuple, Sequence
 __version__ = "0.1.0"
 __author__ = "Robinhood Markets"
 __contact__ = "opensource@robinhood.com"
+__maintainer__ = "Lanqing Huang"
 __homepage__ = "https://github.com/lqhuang/mode-ng"
 __docformat__ = "restructuredtext"
 
@@ -151,6 +152,7 @@ class _module(ModuleType):
                 "__version__",
                 "__author__",
                 "__contact__",
+                "__maintainer__",
                 "__homepage__",
                 "__docformat__",
             )
@@ -171,6 +173,7 @@ new_module.__dict__.update(
         "__version__": __version__,
         "__author__": __author__,
         "__contact__": __contact__,
+        "__maintainer__": __maintainer__,
         "__homepage__": __homepage__,
         "__docformat__": __docformat__,
         "__package__": __package__,

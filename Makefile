@@ -69,8 +69,7 @@ bump-major:
 	$(BUMPVERSION) major
 
 release:
-	$(PYTHON) setup.py register sdist bdist_wheel upload --sign --identity="$(PGPIDENT)"
-
+	$(PYTHON) -m twine upload --skip-existing dist/*
 
 . PHONY: deps-default
 deps-default:
@@ -182,6 +181,8 @@ cov:
 
 build:
 	$(PYTHON) setup.py sdist bdist_wheel
+# $(PIP) wheel --use-pep517 --use-feature=in-tree-build .
+# $(PYTHON) -m build --no-isolation .
 
 distcheck: lint test clean
 

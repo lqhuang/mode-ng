@@ -15,10 +15,12 @@
 
 - Friendly fork of ``faust-streaming/mode``: Initial release
 
-.. version-prefork:
+- Nothing changes yet
 
-prefork
-========
+.. version-previous-release:
+
+previous-release
+================
 :release-date: 2021-10-14
 :release-by: Taybin Rutkin (:github_user:`taybin`), Thomas Sarboni (:github_user:`max-k`)
 

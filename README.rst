@@ -33,6 +33,8 @@ and more...
 A new fork: ``mode-ng``
 -----------------------
 
+**WIP** notice. Welcome to try it in your programs and feedback!
+
 Well, here is an another fork for ``mode`` and why. Generally, my target is to
 create an individual and separated repository to develop ``mode`` for next
 stage/generation.
