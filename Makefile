@@ -1,5 +1,5 @@
 PROJ ?= mode
-PGPIDENT ?= "Faust Security Team"
+PGPIDENT ?= "Lanqing Huang"
 PYTHON ?= python
 PYTEST ?= py.test
 PIP ?= pip
@@ -13,7 +13,7 @@ MYPY ?= mypy
 SPHINX2RST ?= sphinx2rst
 BUMPVERSION ?= bumpversion
 
-TESTDIR ?= t
+TESTDIR ?= tests
 SPHINX_DIR ?= docs/
 SPHINX_BUILDDIR ?= "${SPHINX_DIR}/_build"
 README ?= README.rst
@@ -175,7 +175,7 @@ test-all: clean-pyc
 	$(TOX)
 
 test:
-	$(PYTHON) setup.py test
+	$(PYTEST) .
 
 cov:
 	$(PYTEST) -x --cov="$(PROJ)" --cov-report=html

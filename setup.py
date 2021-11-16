@@ -3,28 +3,18 @@
 
 import re
 import sys
-
-try:
-    import platform
-
-    _pyimp = platform.python_implementation
-except (AttributeError, ImportError):
-
-    def _pyimp():
-        return "Python"
-
+from pathlib import Path  # noqa
+from platform import python_implementation
 
 from setuptools import find_packages, setup
 
 NAME = "mode-ng"
 EXTENSIONS = {"eventlet", "gevent", "uvloop"}
-E_UNSUPPORTED_PYTHON = "%s 1.0 requires %%s %%s or later!" % (NAME,)  # noqa: S001
+E_UNSUPPORTED_PYTHON = "%s 0.1.0 requires %%s %%s or later!" % (NAME,)
+PYIMP = python_implementation()
 
-PYIMP = _pyimp()
-if sys.version_info < (3, 6):
-    raise Exception(E_UNSUPPORTED_PYTHON % (PYIMP, "3.6"))  # noqa: S001
-
-from pathlib import Path  # noqa
+if sys.version_info < (3, 10):
+    raise Exception(E_UNSUPPORTED_PYTHON % (PYIMP, "3.10"))
 
 README = Path("README.rst")
 
@@ -34,10 +24,7 @@ classes = """
     Development Status :: 4 - Beta
     License :: OSI Approved :: BSD License
     Programming Language :: Python :: 3 :: Only
-    Programming Language :: Python :: 3.6
-    Programming Language :: Python :: 3.7
-    Programming Language :: Python :: 3.8
-    Programming Language :: Python :: 3.9
+    Programming Language :: Python :: 3.10
     Programming Language :: Python :: Implementation :: CPython
     Operating System :: POSIX
     Operating System :: Microsoft :: Windows
@@ -121,9 +108,9 @@ else:
 # -*- %%% -*-
 
 packages = find_packages(
-    exclude=["t", "t.*", "docs", "docs.*", "examples", "examples.*"],
+    exclude=["tests", "tests.*", "docs", "docs.*", "examples", "examples.*"],
 )
-assert not any(package.startswith("t.") for package in packages)
+assert not any(package.startswith("tests.") for package in packages)
 
 
 setup(
@@ -144,7 +131,7 @@ setup(
     install_requires=reqs("default.txt"),
     tests_require=reqs("test.txt"),
     extras_require=extras_require(),
-    python_requires="~=3.6",
+    python_requires="~=3.10",
     classifiers=classifiers,
     long_description=long_description,
     long_description_content_type="text/x-rst",

@@ -4,25 +4,29 @@
  Change history
 ================
 
-.. version-0.2.0:
+.. version-0.1.0
 
-0.2.0
+0.1.0
 =====
+:release-date: 2021-11-16
+:release-by: Lanqing Huang (:github_user:`lqhuang`)
+
+- Support python-3.10
+
+- Friendly fork of ``faust-streaming/mode``: Initial release
+
+.. version-prefork:
+
+prefork
+========
 :release-date: 2021-10-14
-:release-by: Taybin Rutkin (:github_user:`taybin`)
+:release-by: Taybin Rutkin (:github_user:`taybin`), Thomas Sarboni (:github_user:`max-k`)
 
 - Support python-3.10
 
 - format with black and isort
 
 - add crontab timer from Faust (:github_user:`lqhuang`)
-
-.. version-0.1.0:
-
-0.1.0
-=====
-:release-date: 2020-12-17 14:00 P.M CET
-:release-by: Thomas Sarboni (:github_user:`max-k`)
 
 - Friendly fork of ask/mode : Initial release
 
