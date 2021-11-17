@@ -15,9 +15,7 @@ omit =
 
     # not needed
     */mode/types/*
-    */mode/utils/_py37_contextlib.py
     */mode/utils/types/*
-    */mode/utils/typing.py
     */mode/utils/mocks.py
 
     # been in celery since forever

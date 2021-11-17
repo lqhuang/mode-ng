@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import asynccontextmanager
 from functools import reduce
 from itertools import chain
 from typing import List, NamedTuple, Tuple
@@ -7,7 +8,6 @@ import pytest
 
 from mode.timers import Timer
 from mode.utils.aiter import aslice
-from mode.utils.contexts import asynccontextmanager
 from mode.utils.mocks import ANY, AsyncMock, Mock, patch
 
 

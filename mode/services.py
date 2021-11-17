@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import sys
+from contextlib import AsyncExitStack, ExitStack
 from datetime import tzinfo
 from functools import wraps
 from time import monotonic, perf_counter
@@ -28,7 +29,6 @@ from typing import (
 
 from .timers import Timer
 from .types import DiagT, ServiceT
-from .utils.contexts import AsyncExitStack, ExitStack
 from .utils.cron import secs_for_next
 from .utils.locks import Event
 from .utils.logging import CompositeLogger, get_logger, level_number
@@ -716,7 +716,7 @@ class Service(ServiceBase, ServiceCallbacks):
         return await self._wait_one(coro, timeout=timeout)
 
     async def wait_first(
-        self, *coros: WaitArgT, timeout: Seconds = None
+        self, *coros: WaitArgT, timeout: Seconds | None = None
     ) -> WaitResults:
         _coros: Mapping[WaitArgT, FutureT]
         timeout = want_seconds(timeout) if timeout is not None else None
@@ -735,8 +735,8 @@ class Service(ServiceBase, ServiceCallbacks):
         }
         futures[stopped] = asyncio.ensure_future(stopped.wait(), loop=loop)
         futures[crashed] = asyncio.ensure_future(crashed.wait(), loop=loop)
-        done: Set[asyncio.Future]
-        pending: Set[asyncio.Future]
+        done: set[asyncio.Future]
+        pending: set[asyncio.Future]
         try:
             done, pending = await asyncio.wait(
                 futures.values(),
@@ -746,8 +746,8 @@ class Service(ServiceBase, ServiceCallbacks):
             for f in done:
                 if f.done() and f.exception() is not None:
                     f.result()  # propagate exceptions
-            winners: List[WaitArgT] = []
-            results: List[Any] = []
+            winners: list[WaitArgT] = []
+            results: list[Any] = []
             for coro, fut in futures.items():
                 if fut.done():
                     winners.append(coro)
@@ -770,7 +770,7 @@ class Service(ServiceBase, ServiceCallbacks):
             return WaitResult(None, True)
         return WaitResult(results.results[0], False)
 
-    async def _wait_stopped(self, timeout: Seconds = None) -> None:
+    async def _wait_stopped(self, timeout: Seconds | None = None) -> None:
         timeout = want_seconds(timeout) if timeout is not None else None
         stopped = self._stopped.wait()
         crashed = self._crashed.wait()
@@ -864,7 +864,7 @@ class Service(ServiceBase, ServiceCallbacks):
                 # if the service has no supervisor we go ahead
                 # and mark parent nodes as crashed as well.
                 root = self.beacon.root
-                seen: Set[NodeT] = set()
+                seen: set[NodeT] = set()
                 for node in self.beacon.walk():
                     if node in seen:
                         self.log.warning("Recursive loop in beacon: %r: %r", node, seen)

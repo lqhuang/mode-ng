@@ -1,6 +1,7 @@
 """Type classes for :mod:`mode.services`."""
 import abc
 import asyncio
+from contextlib import AsyncExitStack, ExitStack
 from typing import (
     Any,
     AsyncContextManager,
@@ -14,7 +15,6 @@ from typing import (
     Union,
 )
 
-from mode.utils.contexts import AsyncExitStack, ExitStack
 from mode.utils.types.trees import NodeT
 
 from .supervisors import SupervisorStrategyT

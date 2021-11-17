@@ -1,7 +1,7 @@
 import pytest
 
-from mode.utils.compat import isatty, want_bytes, want_str
 from mode.utils.mocks import Mock
+from mode.utils.text import isatty, want_bytes, want_str
 
 
 @pytest.mark.parametrize(

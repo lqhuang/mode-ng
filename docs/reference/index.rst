@@ -55,8 +55,6 @@ Utils
 
     mode.utils.aiter
     mode.utils.collections
-    mode.utils.compat
-    mode.utils.contexts
     mode.utils.futures
     mode.utils.graphs
     mode.utils.imports

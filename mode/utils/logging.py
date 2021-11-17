@@ -8,7 +8,7 @@ import sys
 import threading
 import traceback
 import typing
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from functools import singledispatch, wraps
 from itertools import count
 from logging import Logger
@@ -37,7 +37,6 @@ from typing import (
 
 import colorlog
 
-from .contexts import ExitStack
 from .futures import all_tasks, current_task
 from .locals import LocalStack
 from .text import title
