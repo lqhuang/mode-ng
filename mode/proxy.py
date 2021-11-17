@@ -3,12 +3,11 @@
 Works like a service, but delegates to underlying service object.
 """
 import abc
-from typing import Any, ContextManager, Optional
+from typing import Any, AsyncContextManager, ContextManager, Optional
 
 from .services import ServiceBase
 from .types import ServiceT
 from .utils.types.trees import NodeT
-from .utils.typing import AsyncContextManager
 
 __all__ = ["ServiceProxy"]
 

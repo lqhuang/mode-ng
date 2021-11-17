@@ -18,12 +18,10 @@ from typing import (
     Any,
     Callable,
     ClassVar,
-    Dict,
     Iterable,
     Iterator,
-    List,
+    NoReturn,
     Optional,
-    Tuple,
     Union,
     cast,
 )
@@ -34,7 +32,6 @@ from .utils import logging
 from .utils.futures import all_tasks, maybe_cancel
 from .utils.imports import symbol_by_name
 from .utils.times import Seconds
-from .utils.typing import NoReturn
 
 if typing.TYPE_CHECKING:
     from .debug import BlockingDetector
@@ -55,7 +52,7 @@ BLOCK_DETECTOR = "mode.debug:BlockingDetector"
 
 
 class _TupleAsListRepr(reprlib.Repr):
-    def repr_tuple(self, x: Tuple, level: int) -> str:
+    def repr_tuple(self, x: tuple, level: int) -> str:
         return self.repr_list(cast(list, x), level)
 
 
@@ -88,11 +85,11 @@ class Worker(Service):
     debug: bool
     quiet: bool
     blocking_timeout: Seconds
-    logging_config: Optional[Dict]
+    logging_config: dict | None
     loglevel: Optional[Union[str, int]]
     logfile: Optional[Union[str, IO]]
     console_port: int
-    loghandlers: List[Handler]
+    loghandlers: list[Handler]
     redirect_stdouts: bool
     redirect_stdouts_level: int
 
@@ -112,7 +109,7 @@ class Worker(Service):
         *services: ServiceT,
         debug: bool = False,
         quiet: bool = False,
-        logging_config: Dict = None,
+        logging_config: dict | None = None,
         loglevel: Union[str, int] = None,
         logfile: Union[str, IO] = None,
         redirect_stdouts: bool = True,
@@ -120,7 +117,7 @@ class Worker(Service):
         stdout: Optional[IO] = sys.stdout,
         stderr: Optional[IO] = sys.stderr,
         console_port: int = 50101,
-        loghandlers: List[Handler] = None,
+        loghandlers: list[Handler] = None,
         blocking_timeout: Seconds = 10.0,
         loop: asyncio.AbstractEventLoop = None,
         override_logging: bool = True,

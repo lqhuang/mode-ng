@@ -7,7 +7,7 @@ http://learnyousomeerlang.com/supervisors
 
 """
 import asyncio
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Type
+from typing import Any, Awaitable, Callable, Optional, Type
 
 from .exceptions import MaxRestartsExceeded
 from .services import Service
@@ -34,7 +34,7 @@ class SupervisorStrategy(Service, SupervisorStrategyT):
     _please_wakeup: Optional[asyncio.Future]
 
     #: the services we manage
-    _services: List[ServiceT]
+    _services: list[ServiceT]
 
     # rate limit state
     _bucket: Bucket
@@ -43,7 +43,7 @@ class SupervisorStrategy(Service, SupervisorStrategyT):
     # if we have 10 services for example, and one of the crash,
     #  we want to know the position of the service we are restarting.
     # This is needed for Faust and the @app.agent(concurrency=n) feature.
-    _index: Dict[ServiceT, int]
+    _index: dict[ServiceT, int]
 
     def __init__(
         self,
@@ -128,8 +128,8 @@ class SupervisorStrategy(Service, SupervisorStrategyT):
             finally:
                 self._please_wakeup = None
             if not self.should_stop:
-                to_start: List[ServiceT] = []
-                to_restart: List[ServiceT] = []
+                to_start: list[ServiceT] = []
+                to_restart: list[ServiceT] = []
                 for service in services:
                     if service.started:
                         if not self.service_operational(service):
@@ -153,18 +153,18 @@ class SupervisorStrategy(Service, SupervisorStrategyT):
                 except Exception as exc:
                     self.log.exception("Unable to stop service %r: %r", service, exc)
 
-    async def start_services(self, services: List[ServiceT]) -> None:
+    async def start_services(self, services: list[ServiceT]) -> None:
         for service in services:
             await self.start_service(service)
 
     async def start_service(self, service: ServiceT) -> None:
         await service.maybe_start()
 
-    async def restart_services(self, services: List[ServiceT]) -> None:
+    async def restart_services(self, services: list[ServiceT]) -> None:
         for service in services:
             await self.restart_service(service)
 
-    async def stop_services(self, services: List[ServiceT]) -> None:
+    async def stop_services(self, services: list[ServiceT]) -> None:
         # Stop them all simultaneously.
         await asyncio.gather(
             *[service.stop() for service in services],
@@ -202,7 +202,7 @@ class OneForOneSupervisor(SupervisorStrategy):
 class OneForAllSupervisor(SupervisorStrategy):
     """Supervisor that restarts all services when a service crashes."""
 
-    async def restart_services(self, services: List[ServiceT]) -> None:
+    async def restart_services(self, services: list[ServiceT]) -> None:
         # we ignore the list of actual crashed services,
         # and restart all of them
         if services:
@@ -216,7 +216,7 @@ class OneForAllSupervisor(SupervisorStrategy):
 class ForfeitOneForOneSupervisor(SupervisorStrategy):
     """Supervisor that if a service crashes, we do not restart it."""
 
-    async def restart_services(self, services: List[ServiceT]) -> None:
+    async def restart_services(self, services: list[ServiceT]) -> None:
         if services:
             self.log.critical("Giving up on crashed services: %r", services)
             await self.stop_services(services)
@@ -225,7 +225,7 @@ class ForfeitOneForOneSupervisor(SupervisorStrategy):
 class ForfeitOneForAllSupervisor(SupervisorStrategy):
     """If one service in the group crashes, we give up on all of them."""
 
-    async def restart_services(self, services: List[ServiceT]) -> None:
+    async def restart_services(self, services: list[ServiceT]) -> None:
         if services:
             self.log.critical(
                 "Giving up on all services in group because %r crashed",

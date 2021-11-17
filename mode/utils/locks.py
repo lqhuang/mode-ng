@@ -8,8 +8,6 @@ import asyncio
 from collections import deque
 from typing import Optional
 
-from .typing import Deque
-
 
 class Event:
     """Asynchronous equivalent to threading.Event.
@@ -20,7 +18,7 @@ class Event:
     false.
     """
 
-    _waiters: Deque[asyncio.Future]
+    _waiters: deque[asyncio.Future]
     _value: bool
     _loop: Optional[asyncio.AbstractEventLoop]
 

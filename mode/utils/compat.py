@@ -1,9 +1,8 @@
 """Compatibility utilities."""
-from typing import IO, AnyStr
+from typing import IO, AnyStr, AsyncContextManager, ChainMap, Counter, Deque, NoReturn
 
 from .contexts import asyncnullcontext, nullcontext
 from .futures import current_task
-from .typing import AsyncContextManager, ChainMap, Counter, Deque, NoReturn
 
 __all__ = [
     "AsyncContextManager",  # XXX moved to .typing

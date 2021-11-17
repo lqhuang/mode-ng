@@ -1,24 +1,11 @@
 """Async I/O Future utilities."""
 import asyncio
+from asyncio import all_tasks, current_task
 from inspect import isawaitable
-from typing import Any, Callable, Optional, Set, Type
+from typing import Any, Callable, NoReturn, Optional, Type
 
 # These used to be here, now moved to .queues
 from .queues import FlowControlEvent, FlowControlQueue  # noqa: F401
-from .typing import NoReturn
-
-try:  # pragma: no cover
-    from asyncio import all_tasks  # type: ignore
-except ImportError:  # pragma: no cover
-
-    def all_tasks(loop: asyncio.AbstractEventLoop) -> Set[asyncio.Task]:  # noqa
-        return asyncio.Task.all_tasks(loop=loop)
-
-
-try:  # pragma: no cover
-    from asyncio import current_task  # type: ignore
-except ImportError:  # pragma: no cover
-    current_task = asyncio.Task.current_task
 
 __all__ = [
     "all_tasks",

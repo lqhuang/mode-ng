@@ -4,18 +4,16 @@ from typing import (
     IO,
     Any,
     Callable,
+    Counter,
     ItemsView,
     Iterable,
     Iterator,
-    List,
     MutableMapping,
     Sequence,
-    Set,
     cast,
 )
 
 from mode.utils.types.graphs import _T, DependencyGraphT, GraphFormatterT
-from mode.utils.typing import Counter
 
 from .formatter import GraphFormatter
 
@@ -66,7 +64,7 @@ class DependencyGraph(DependencyGraphT):
         """Sort the graph topologically.
 
         Returns:
-            List: of objects in the order in which they must be handled.
+            list: of objects in the order in which they must be handled.
         """
         graph = DependencyGraph()
         components = self._tarjan72()
@@ -135,9 +133,9 @@ class DependencyGraph(DependencyGraphT):
         See Also:
             :wikipedia:`Tarjan%27s_strongly_connected_components_algorithm`
         """
-        result: List = []
-        stack: List = []
-        low: List = []
+        result: list = []
+        stack: list = []
+        low: list = []
 
         def visit(node: Any) -> None:
             if node in low:
@@ -171,7 +169,7 @@ class DependencyGraph(DependencyGraphT):
             formatter (celery.utils.graph.GraphFormatter): Custom graph
                 formatter to use.
         """
-        seen: Set = set()
+        seen: set = set()
         draw = formatter or self.formatter
         write = partial(print, file=fh)  # noqa: T101
 

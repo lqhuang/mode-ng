@@ -7,20 +7,17 @@ from contextlib import AbstractContextManager
 from functools import wraps
 from typing import (
     Any,
+    AsyncContextManager,
     Awaitable,
     Callable,
     ContextManager,
-    Dict,
     Optional,
-    Tuple,
     Type,
     Union,
     cast,
 )
 
 import _collections_abc
-
-from .typing import AsyncContextManager, Deque
 
 __all__ = [
     "AbstractAsyncContextManager",
@@ -67,7 +64,7 @@ class _AsyncGeneratorContextManager(AbstractAsyncContextManager):
     # this __init__ is taken from contextlib._GeneratorContextManagerBase
     # in CPython3.7.
 
-    def __init__(self, func: Callable, args: Tuple, kwds: Dict) -> None:
+    def __init__(self, func: Callable, args: tuple, kwds: dict) -> None:
         self.gen = func(*args, **kwds)
         self.func, self.args, self.kwds = func, args, kwds
         # Issue 19330: ensure context manager instances have good docstrings
@@ -143,7 +140,7 @@ def asynccontextmanager(func: Callable) -> Callable[..., AsyncContextManager]:
 class _BaseExitStack:
     """A base class for ExitStack and AsyncExitStack."""
 
-    _exit_callbacks: Deque[Tuple[bool, Callable]]
+    _exit_callbacks: deque[tuple[bool, Callable]]
 
     @staticmethod
     def _create_exit_wrapper(cm: ContextManager, cm_exit: Callable) -> Callable:

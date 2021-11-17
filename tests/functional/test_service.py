@@ -1,13 +1,12 @@
 import asyncio
 import logging
-from typing import ContextManager
+from typing import AsyncContextManager, ContextManager
 
 import pytest
 
 import mode
 from mode.utils.locks import Event
 from mode.utils.mocks import Mock
-from mode.utils.typing import AsyncContextManager
 
 
 class X(mode.Service):

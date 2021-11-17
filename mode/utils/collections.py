@@ -18,21 +18,17 @@ from typing import (
     Any,
     Callable,
     ContextManager,
-    Dict,
     Generic,
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
-    List,
     Mapping,
     MutableMapping,
     MutableSequence,
     MutableSet,
     Optional,
     Sequence,
-    Set,
-    Tuple,
     TypeVar,
     Union,
     ValuesView,
@@ -125,14 +121,14 @@ class Heap(MutableSequence[T]):
         """
         return heapreplace(self.data, item)
 
-    def nlargest(self, n: int, key: Callable = None) -> List[T]:
+    def nlargest(self, n: int, key: Callable = None) -> list[T]:
         """Find the n largest elements in the dataset."""
         if key is not None:
             return nlargest(n, self.data, key=key)
         else:
             return nlargest(n, self.data)
 
-    def nsmallest(self, n: int, key: Callable = None) -> List[T]:
+    def nsmallest(self, n: int, key: Callable = None) -> list[T]:
         """Find the n smallest elements in the dataset."""
         if key is not None:
             return nsmallest(n, self.data, key=key)
@@ -391,7 +387,7 @@ class MappingViewProxy(Generic[KT, VT]):
         ...
 
     @abc.abstractmethod
-    def _items(self) -> Iterator[Tuple[KT, VT]]:
+    def _items(self) -> Iterator[tuple[KT, VT]]:
         ...
 
 
@@ -415,7 +411,7 @@ class ProxyItemsView(ItemsView):
     def __init__(self, mapping: MappingViewProxy) -> None:
         self._mapping = mapping
 
-    def __iter__(self) -> Iterator[Tuple[KT, VT]]:
+    def __iter__(self) -> Iterator[tuple[KT, VT]]:
         yield from self._mapping._items()
 
 
@@ -456,7 +452,7 @@ class LRUCache(FastUserDict, MutableMapping[KT, VT], MappingViewProxy):
                 for _ in range(len(data) - limit):
                     data.popitem(last=False)
 
-    def popitem(self, *, last: bool = True) -> Tuple[KT, VT]:
+    def popitem(self, *, last: bool = True) -> tuple[KT, VT]:
         with self._mutex:
             return self.data.popitem(last)
 
@@ -492,7 +488,7 @@ class LRUCache(FastUserDict, MutableMapping[KT, VT], MappingViewProxy):
     def items(self) -> ItemsView[KT, VT]:
         return ProxyItemsView(self)
 
-    def _items(self) -> Iterator[Tuple[KT, VT]]:
+    def _items(self) -> Iterator[tuple[KT, VT]]:
         with self._mutex:
             for k in self:
                 try:
@@ -518,7 +514,7 @@ class LRUCache(FastUserDict, MutableMapping[KT, VT], MappingViewProxy):
         d.pop("_mutex")
         return d
 
-    def __setstate__(self, state: Dict[str, Any]) -> None:
+    def __setstate__(self, state: dict[str, Any]) -> None:
         self.__dict__ = state
         self._mutex = self._new_lock()
 
@@ -535,7 +531,7 @@ class ManagedUserSet(FastUserSet[T]):
     def on_clear(self) -> None:
         ...
 
-    def on_change(self, added: Set[T], removed: Set[T]) -> None:
+    def on_change(self, added: set[T], removed: set[T]) -> None:
         ...
 
     def add(self, element: T) -> None:
@@ -563,14 +559,14 @@ class ManagedUserSet(FastUserSet[T]):
     def __iand__(self, other: AbstractSet[Any]) -> "FastUserSet":
         self.on_change(
             added=set(),
-            removed=cast(Set, self).difference(other),
+            removed=cast(set, self).difference(other),
         )
         self.data.__iand__(other)
         return self
 
     def __ior__(self, other: AbstractSet[_S]) -> "FastUserSet":
         self.on_change(
-            added=cast(Set, other).difference(self),
+            added=cast(set, other).difference(self),
             removed=set(),
         )
         self.data.__ior__(other)
@@ -579,21 +575,21 @@ class ManagedUserSet(FastUserSet[T]):
     def __isub__(self, other: AbstractSet[Any]) -> "FastUserSet":
         self.on_change(
             added=set(),
-            removed=cast(Set, self.data).intersection(other),
+            removed=cast(set, self.data).intersection(other),
         )
         self.data.__isub__(other)
         return self
 
     def __ixor__(self, other: AbstractSet[_S]) -> "FastUserSet":
         self.on_change(
-            added=cast(Set, other).difference(self.data),
-            removed=cast(Set, self.data).intersection(other),
+            added=cast(set, other).difference(self.data),
+            removed=cast(set, self.data).intersection(other),
         )
         self.data.__ixor__(other)
         return self
 
     def difference_update(self, other: _Setlike[T]) -> None:
-        data = cast(Set, self.data)
+        data = cast(set, self.data)
         self.on_change(
             added=set(),
             removed=data.intersection(other),
@@ -601,17 +597,17 @@ class ManagedUserSet(FastUserSet[T]):
         data.difference_update(other)
 
     def intersection_update(self, other: _Setlike[T]) -> None:
-        data = cast(Set, self.data)
+        data = cast(set, self.data)
         self.on_change(
             added=set(),
-            removed=cast(Set, self).difference(other),
+            removed=cast(set, self).difference(other),
         )
         data.intersection_update(other)
 
     def symmetric_difference_update(self, other: _Setlike[T]) -> None:
-        data = cast(Set, self.data)
+        data = cast(set, self.data)
         self.on_change(
-            added=cast(Set, other).difference(self.data),
+            added=cast(set, other).difference(self.data),
             removed=data.intersection(other),
         )
         data.symmetric_difference_update(other)
@@ -619,10 +615,10 @@ class ManagedUserSet(FastUserSet[T]):
     def update(self, other: _Setlike[T]) -> None:
         # union update
         self.on_change(
-            added=cast(Set, other).difference(self),
+            added=cast(set, other).difference(self),
             removed=set(),
         )
-        cast(Set, self.data).update(other)
+        cast(set, self.data).update(other)
 
 
 class ManagedUserDict(FastUserDict[KT, VT]):
@@ -756,7 +752,7 @@ class DictAttribute(MutableMapping[str, VT], MappingViewProxy):
         for key in self:
             yield getattr(obj, key)
 
-    def _items(self) -> Iterator[Tuple[str, VT]]:
+    def _items(self) -> Iterator[tuple[str, VT]]:
         obj = self.obj
         for key in self:
             yield key, getattr(obj, key)

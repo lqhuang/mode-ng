@@ -17,7 +17,6 @@ from typing import (
     MutableMapping,
     NamedTuple,
     Optional,
-    Set,
     Type,
     TypeVar,
     Union,
@@ -84,7 +83,7 @@ class FactoryMapping(FastUserDict, Generic[_T]):
     """
 
     aliases: MutableMapping[str, str]
-    namespaces: Set
+    namespaces: set
     _finalized: bool = False
 
     def __init__(self, *args: Mapping, **kwargs: str) -> None:

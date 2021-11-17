@@ -8,9 +8,7 @@ from typing import (
     AsyncIterator,
     Iterable,
     Iterator,
-    List,
     Optional,
-    Tuple,
     TypeVar,
     cast,
 )
@@ -30,7 +28,7 @@ T = TypeVar("T")
 
 async def aenumerate(
     it: AsyncIterable[T], start: int = 0
-) -> AsyncIterator[Tuple[int, T]]:
+) -> AsyncIterator[tuple[int, T]]:
     """``async for`` version of ``enumerate``."""
     i = start
     async for item in it:
@@ -135,7 +133,7 @@ class arange(AsyncIterable[int]):
         return _ARangeIterator(self, iter(self._range))
 
 
-async def alist(ait: AsyncIterator[T]) -> List[T]:
+async def alist(ait: AsyncIterator[T]) -> list[T]:
     """Convert async generator to list."""
     return [x async for x in ait]
 
@@ -157,7 +155,7 @@ async def aslice(ait: AsyncIterator[T], *slice_args: int) -> AsyncIterator[T]:
         return
 
 
-async def chunks(it: AsyncIterable[T], n: int) -> AsyncIterable[List[T]]:
+async def chunks(it: AsyncIterable[T], n: int) -> AsyncIterable[list[T]]:
     """Split an async iterator into chunks with `n` elements each.
 
     Example:

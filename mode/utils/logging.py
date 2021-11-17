@@ -23,16 +23,13 @@ from typing import (
     Callable,
     ClassVar,
     ContextManager,
-    Dict,
     Iterable,
     Iterator,
-    List,
     Mapping,
     NamedTuple,
     Optional,
-    Set,
+    Protocol,
     TextIO,
-    Tuple,
     Type,
     Union,
     cast,
@@ -46,7 +43,6 @@ from .locals import LocalStack
 from .text import title
 from .times import Seconds, want_seconds
 from .tracebacks import format_task_stack, print_task_stack
-from .typing import Protocol
 
 __all__ = [
     "CompositeLogger",
@@ -108,7 +104,7 @@ def current_flight_recorder() -> Optional["flight_recorder"]:
     return current_flight_recorder_stack.top
 
 
-def _logger_config(handlers: List[str], level: Union[str, int] = "INFO") -> Dict:
+def _logger_config(handlers: list[str], level: Union[str, int] = "INFO") -> dict:
     return {
         "handlers": handlers,
         "level": level,
@@ -118,10 +114,10 @@ def _logger_config(handlers: List[str], level: Union[str, int] = "INFO") -> Dict
 def create_logconfig(
     version: int = 1,
     disable_existing_loggers: bool = False,
-    formatters: Dict = DEFAULT_FORMATTERS,
-    handlers: Dict = None,
-    root: Dict = None,
-) -> Dict:
+    formatters: dict = DEFAULT_FORMATTERS,
+    handlers: dict = None,
+    root: dict = None,
+) -> dict:
     return {
         "version": version,
         # do not disable existing loggers from other modules.
@@ -141,8 +137,8 @@ FormatterHandler = Callable[[Any], Any]
 FormatterHandler2 = Callable[[Any, logging.LogRecord], Any]
 Severity = Union[int, str]
 
-_formatter_registry: Set[FormatterHandler] = set()
-_formatter_registry2: Set[FormatterHandler2] = set()
+_formatter_registry: set[FormatterHandler] = set()
+_formatter_registry2: set[FormatterHandler2] = set()
 
 
 def get_logger(name: str) -> Logger:
@@ -391,9 +387,9 @@ def _(loglevel: str) -> int:
 def setup_logging(
     *,
     loglevel: Union[str, int] = None,
-    logfile: Union[str, IO] = None,
-    loghandlers: List[logging.Handler] = None,
-    logging_config: Dict = None,
+    logfile: str | IO | None = None,
+    loghandlers: list[logging.Handler] = None,
+    logging_config: dict = None,
 ) -> int:
     """Configure logging subsystem."""
     stream: Optional[IO] = None
@@ -425,8 +421,8 @@ def _setup_logging(
     level: Union[int, str] = None,
     filename: str = None,
     stream: IO = None,
-    loghandlers: List[logging.Handler] = None,
-    logging_config: Dict = None,
+    loghandlers: list[logging.Handler] = None,
+    logging_config: dict = None,
 ) -> None:
     handlers = {}
     if filename:
@@ -477,7 +473,7 @@ class Logwrapped(object):
     severity: int
     ident: str
 
-    _ignore: ClassVar[Set[str]] = {"__enter__", "__exit__"}
+    _ignore: ClassVar[set[str]] = {"__enter__", "__exit__"}
 
     def __init__(
         self, obj: Any, logger: Any = None, severity: Severity = None, ident: str = ""
@@ -516,7 +512,7 @@ class Logwrapped(object):
     def __repr__(self) -> str:
         return repr(self.obj)
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         return dir(self.obj)
 
 
@@ -582,8 +578,8 @@ class LogMessage(NamedTuple):
     severity: int
     message: str
     asctime: str
-    args: Tuple[Any, ...]
-    kwargs: Dict[str, Any]
+    args: tuple[Any, ...]
+    kwargs: dict[str, Any]
 
 
 class flight_recorder(ContextManager, LogSeverityMixin):
@@ -657,11 +653,11 @@ class flight_recorder(ContextManager, LogSeverityMixin):
     loop: asyncio.AbstractEventLoop
     started_at_date: Optional[str]
     enabled_by: Optional[asyncio.Task]
-    extra_context: Dict[str, Any]
+    extra_context: dict[str, Any]
 
     _fut: Optional[asyncio.Future]
-    _logs: List[LogMessage]
-    _default_context: Dict[str, Any]
+    _logs: list[LogMessage]
+    _default_context: dict[str, Any]
 
     def __init__(
         self, logger: Any, *, timeout: Seconds, loop: asyncio.AbstractEventLoop = None
@@ -730,8 +726,9 @@ class flight_recorder(ContextManager, LogSeverityMixin):
             self.blush()
 
     def blush(self) -> None:
+        logger = self.logger
+
         try:
-            logger = self.logger
             ident = self._ident()
             logger.warning("Warning: Task timed out!")
             logger.warning("Please make sure it's hanging before restart.")
@@ -763,7 +760,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
             finally:
                 logs.clear()
 
-    def _fill_extra_context(self, kwargs: Dict) -> None:
+    def _fill_extra_context(self, kwargs: dict) -> None:
         if self.extra_context:
             extra = kwargs["extra"] = kwargs.get("extra") or {}
             extra["data"] = {
@@ -903,7 +900,7 @@ class FileLogProxy(TextIO):
     def readline(self, limit: int = -1) -> AnyStr:
         raise NotImplementedError()
 
-    def readlines(self, hint: int = -1) -> List[AnyStr]:
+    def readlines(self, hint: int = -1) -> list[AnyStr]:
         raise NotImplementedError()
 
     def seek(self, offset: int, whence: int = 0) -> int:

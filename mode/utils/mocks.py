@@ -13,7 +13,6 @@ from typing import (
     Callable,
     ContextManager,
     Iterator,
-    List,
     Optional,
     Type,
     Union,
@@ -66,7 +65,7 @@ class Mock(unittest.mock.Mock):
     """Mock object."""
 
     global_call_count: Optional[int] = None
-    call_counts: List[int] = cast(List[int], None)
+    call_counts: list[int] = cast(list[int], None)
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         ret = super().__call__(*args, **kwargs)

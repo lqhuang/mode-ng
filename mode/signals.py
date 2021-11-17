@@ -10,8 +10,6 @@ from typing import (
     Mapping,
     MutableSet,
     Optional,
-    Set,
-    Tuple,
     Type,
     cast,
     no_type_check,
@@ -46,7 +44,7 @@ class BaseSignal(BaseSignalT[T]):
         owner: Type = None,
         loop: asyncio.AbstractEventLoop = None,
         default_sender: Any = None,
-        receivers: MutableSet[SignalHandlerRefT] = None,
+        receivers: MutableSet[SignalHandlerRefT] | None = None,
         filter_receivers: FilterReceiverMapping = None,
     ) -> None:
         self.name = name or ""
@@ -97,7 +95,7 @@ class BaseSignal(BaseSignalT[T]):
             self.name = name
         self.owner = owner
 
-    def unpack_sender_from_args(self, *args: Any) -> Tuple[T, Tuple[Any, ...]]:
+    def unpack_sender_from_args(self, *args: Any) -> tuple[T, tuple[Any, ...]]:
         sender = self.default_sender
         if sender is None:
             if not args:
@@ -151,7 +149,7 @@ class BaseSignal(BaseSignalT[T]):
 
     def _update_receivers(
         self, r: MutableSet[SignalHandlerRefT]
-    ) -> Set[SignalHandlerT]:
+    ) -> set[SignalHandlerT]:
         live_receivers, dead_refs = self._get_live_receivers(r)
         for href in dead_refs:
             r.discard(href)
@@ -159,9 +157,9 @@ class BaseSignal(BaseSignalT[T]):
 
     def _get_live_receivers(
         self, r: MutableSet[SignalHandlerRefT]
-    ) -> Tuple[Set[SignalHandlerT], Set[SignalHandlerRefT]]:
-        live_receivers: Set[SignalHandlerT] = set()
-        dead_refs: Set[SignalHandlerRefT] = set()
+    ) -> tuple[set[SignalHandlerT], set[SignalHandlerRefT]]:
+        live_receivers: set[SignalHandlerT] = set()
+        dead_refs: set[SignalHandlerRefT] = set()
         for href in r:
             alive, value = self._is_alive(href)
             if alive and value is not None:
@@ -172,7 +170,7 @@ class BaseSignal(BaseSignalT[T]):
 
     def _is_alive(
         self, ref: SignalHandlerRefT
-    ) -> Tuple[bool, Optional[SignalHandlerT]]:
+    ) -> tuple[bool, Optional[SignalHandlerT]]:
         if isinstance(ref, ReferenceType):
             value = ref()
             return value is not None, value

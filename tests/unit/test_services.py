@@ -1,5 +1,5 @@
 import asyncio
-from typing import ContextManager
+from typing import AsyncContextManager, ContextManager
 
 import pytest
 
@@ -15,7 +15,6 @@ from mode.utils.mocks import (
     call,
     patch,
 )
-from mode.utils.typing import AsyncContextManager
 
 
 class S(Service):

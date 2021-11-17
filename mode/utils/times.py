@@ -6,10 +6,17 @@ import time
 from datetime import timedelta
 from functools import singledispatch
 from types import TracebackType
-from typing import Callable, List, Mapping, NamedTuple, Optional, Type, Union
+from typing import (
+    AsyncContextManager,
+    Callable,
+    Mapping,
+    NamedTuple,
+    Optional,
+    Type,
+    Union,
+)
 
 from .text import pluralize
-from .typing import AsyncContextManager
 
 __all__ = [
     "Bucket",
@@ -38,7 +45,7 @@ class Unit(NamedTuple):
     format: Callable[[float], str]  # noqa: E701
 
 
-TIME_UNITS: List[Unit] = [
+TIME_UNITS: list[Unit] = [
     Unit("day", 60 * 60 * 24.0, lambda n: format(n, ".2f")),
     Unit("hour", 60 * 60.0, lambda n: format(n, ".2f")),
     Unit("minute", 60.0, lambda n: format(n, ".2f")),

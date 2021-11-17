@@ -59,11 +59,7 @@ if typing.TYPE_CHECKING:  # pragma: no cover
     from .types.services import ServiceT  # noqa: E402
     from .types.signals import BaseSignalT, SignalT, SyncSignalT  # noqa: E402
     from .types.supervisors import SupervisorStrategyT  # noqa: E402
-    from .utils.logging import (
-        flight_recorder,
-        get_logger,
-        setup_logging,
-    )  # noqa: E402
+    from .utils.logging import flight_recorder, get_logger, setup_logging  # noqa: E402
     from .utils.objects import label, shortlabel  # noqa: E402
     from .utils.times import Seconds, want_seconds  # noqa: E402
     from .worker import Worker  # noqa: E402

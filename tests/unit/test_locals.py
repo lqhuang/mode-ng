@@ -2,6 +2,7 @@ import abc
 import sys
 from typing import (
     AbstractSet,
+    AsyncGenerator,
     AsyncIterable,
     AsyncIterator,
     Awaitable,
@@ -33,7 +34,6 @@ from mode.locals import (
     maybe_evaluate,
 )
 from mode.utils.mocks import MagicMock, Mock
-from mode.utils.typing import AsyncGenerator
 
 
 class test_Proxy:

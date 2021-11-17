@@ -1,6 +1,8 @@
 """Type classes for :mod:`mode.utils.trees`."""
+from __future__ import annotations
+
 import abc
-from typing import Any, Generic, Iterator, List, Optional, TypeVar, Union
+from typing import Any, Generic, Iterator, Optional, TypeVar, Union
 
 from .graphs import DependencyGraphT
 
@@ -12,16 +14,16 @@ _T = TypeVar("_T")
 class NodeT(Generic[_T]):
     """Node in a tree data structure."""
 
-    children: List[Any]
+    children: list[Any]
     data: Any = None
 
     @classmethod
     @abc.abstractmethod
-    def _new_node(cls, data: _T, **kwargs: Any) -> "NodeT":
+    def _new_node(cls, data: _T, **kwargs: Any) -> NodeT:
         ...
 
     @abc.abstractmethod
-    def new(self, data: _T) -> "NodeT":
+    def new(self, data: _T) -> NodeT:
         ...
 
     @abc.abstractmethod
@@ -37,15 +39,15 @@ class NodeT(Generic[_T]):
         ...
 
     @abc.abstractmethod
-    def reattach(self, parent: "NodeT") -> "NodeT":
+    def reattach(self, parent: NodeT) -> NodeT:
         ...
 
     @abc.abstractmethod
-    def traverse(self) -> Iterator["NodeT"]:
+    def traverse(self) -> Iterator[NodeT]:
         ...
 
     @abc.abstractmethod
-    def walk(self) -> Iterator["NodeT"]:
+    def walk(self) -> Iterator[NodeT]:
         ...
 
     @abc.abstractmethod
@@ -53,25 +55,25 @@ class NodeT(Generic[_T]):
         ...
 
     @abc.abstractmethod
-    def detach(self, parent: "NodeT") -> "NodeT":
+    def detach(self, parent: NodeT) -> NodeT:
         ...
 
     @property
     @abc.abstractmethod
-    def parent(self) -> Optional["NodeT"]:
+    def parent(self) -> Optional[NodeT]:
         ...
 
     @parent.setter
-    def parent(self, node: "NodeT") -> None:
+    def parent(self, node: NodeT) -> None:
         ...
 
     @property
     @abc.abstractmethod
-    def root(self) -> Optional["NodeT"]:
+    def root(self) -> Optional[NodeT]:
         ...
 
     @root.setter
-    def root(self, node: "NodeT") -> None:
+    def root(self, node: NodeT) -> None:
         ...
 
     @property

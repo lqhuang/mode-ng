@@ -1,12 +1,11 @@
 """Data structure: Trees."""
 from contextlib import suppress
-from typing import Any, Iterator, List, Optional, TypeVar, Union, cast
+from typing import Any, Deque, Iterator, Optional, TypeVar, Union, cast
 
 from .graphs import DependencyGraph
 from .objects import shortlabel
 from .types.graphs import DependencyGraphT
 from .types.trees import NodeT
-from .typing import Deque
 
 __all__ = [
     "Node",
@@ -34,7 +33,7 @@ class Node(NodeT[T]):
     Keyword Arguments:
         root (NodeT): Root node.
         parent (NodeT): Parent node.
-        children (List[NodeT]): List of child nodes.
+        children (list[NodeT]): List of child nodes.
     """
 
     _root: Optional[NodeT[T]] = None
@@ -50,7 +49,7 @@ class Node(NodeT[T]):
         *,
         root: NodeT = None,
         parent: NodeT = None,
-        children: List[NodeT[T]] = None,
+        children: list[NodeT[T]] = None,
     ) -> None:
         self.data = data
         if root is not None:

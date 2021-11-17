@@ -1,5 +1,5 @@
 # This is code for the tutorial in README.rst
-from typing import Any, List, MutableMapping
+from typing import Any, MutableMapping
 
 from aiohttp.web import Application
 
@@ -104,7 +104,7 @@ class App(Service):
         self.websocket_port = websocket_port
         super().__init__(**kwargs)
 
-    def on_init_dependencies(self) -> List:
+    def on_init_dependencies(self) -> list:
         return [
             self.websockets,
             self.webserver,

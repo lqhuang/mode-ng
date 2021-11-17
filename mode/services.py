@@ -8,21 +8,19 @@ from time import monotonic, perf_counter
 from types import TracebackType
 from typing import (
     Any,
+    AsyncContextManager,
     AsyncIterator,
     Awaitable,
     Callable,
     ClassVar,
     ContextManager,
-    Dict,
     Generator,
     Iterable,
-    List,
     Mapping,
     MutableSequence,
     NamedTuple,
     Optional,
     Sequence,
-    Set,
     Type,
     Union,
     cast,
@@ -40,7 +38,6 @@ from .utils.times import Seconds, want_seconds
 from .utils.tracebacks import format_task_stack
 from .utils.trees import Node
 from .utils.types.trees import NodeT
-from .utils.typing import AsyncContextManager
 
 __all__ = [
     "ServiceBase",
@@ -63,8 +60,8 @@ EVENT_TYPES = (asyncio.Event, Event)
 
 
 class WaitResults(NamedTuple):
-    done: List[WaitArgT]
-    results: List[Any]
+    done: list[WaitArgT]
+    results: list[Any]
     stopped: bool
 
 
@@ -96,10 +93,10 @@ class ServiceBase(ServiceT):
     # the None to logger.
     logger: logging.Logger = cast(logging.Logger, None)
 
-    def __init_subclass__(self) -> None:
-        if self.abstract:
-            self.abstract = False
-        self._init_subclass_logger()
+    def __init_subclass__(cls) -> None:
+        if cls.abstract:
+            cls.abstract = False
+        cls._init_subclass_logger()
 
     @classmethod
     def _init_subclass_logger(cls) -> None:
@@ -150,7 +147,7 @@ class ServiceBase(ServiceT):
         return self._loop
 
     @loop.setter
-    def loop(self, loop: Optional[asyncio.AbstractEventLoop]) -> None:
+    def loop(self, loop: asyncio.AbstractEventLoop) -> None:
         self._loop = loop
 
 
@@ -398,11 +395,11 @@ class Service(ServiceBase, ServiceCallbacks):
     #: Note: Unlike ``add_dependency`` these futures will not be
     # restarted with the service: if you want that to happen make sure
     # calling service.start() again will add the future again.
-    _futures: Set[asyncio.Future]
+    _futures: set[asyncio.Future]
 
     #: The ``@Service.task`` decorator adds names of attributes
     #: that are ServiceTasks to this list (which is a class variable).
-    _tasks: ClassVar[Optional[Dict[str, Set[str]]]] = None
+    _tasks: ClassVar[dict[str, set[str]] | None] = None
 
     @classmethod
     def from_awaitable(
@@ -497,13 +494,13 @@ class Service(ServiceBase, ServiceCallbacks):
 
         return _decorate
 
-    def __init_subclass__(self) -> None:
+    def __init_subclass__(cls) -> None:
         # Every new subclass adds @Service.task decorated methods
         # to the class-local `_tasks` list.
-        if self.abstract:
-            self.abstract = False
-        self._init_subclass_logger()
-        self._init_subclass_tasks()
+        if cls.abstract:
+            cls.abstract = False
+        cls._init_subclass_logger()
+        cls._init_subclass_tasks()
 
     @classmethod
     def _init_subclass_tasks(cls) -> None:
@@ -516,7 +513,7 @@ class Service(ServiceBase, ServiceCallbacks):
         clsid = cls._get_class_id()
         if cls._tasks is None:
             cls._tasks = {}
-        tasks: Set[str] = set()
+        tasks: set[str] = set()
         for base in iter_mro_reversed(cls, stop=Service):
             tasks |= {
                 attr_name
@@ -526,7 +523,7 @@ class Service(ServiceBase, ServiceCallbacks):
         cls._tasks[clsid] = tasks
 
     def _get_tasks(self) -> Iterable[ServiceTask]:
-        seen: Set[ServiceTask] = set()
+        seen: set[ServiceTask] = set()
         cls = type(self)
         if cls._tasks:
             for attr_name in cls._tasks[cls._get_class_id()]:
@@ -626,7 +623,7 @@ class Service(ServiceBase, ServiceCallbacks):
         """
         fut = asyncio.ensure_future(self._execute_task(coro), loop=self.loop)
         try:
-            fut.set_name(repr(coro))  # type: ignore
+            fut.set_name(repr(coro))
         except AttributeError:
             pass
         fut.__wrapped__ = coro  # type: ignore

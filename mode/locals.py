@@ -73,13 +73,14 @@ when first needed), you can pass the `cache=True` argument to :class:`Proxy`:
     'value'
 """
 import sys
-import typing
 from collections import deque
 from functools import wraps
 from types import GetSetDescriptorType, TracebackType
 from typing import (
     AbstractSet,
     Any,
+    AsyncContextManager,
+    AsyncGenerator,
     AsyncIterable,
     AsyncIterator,
     Awaitable,
@@ -87,19 +88,16 @@ from typing import (
     ClassVar,
     ContextManager,
     Coroutine,
-    Dict,
     Generator,
     Generic,
     Iterable,
     Iterator,
-    List,
     Mapping,
     MutableMapping,
     MutableSequence,
     MutableSet,
     Optional,
     Sequence,
-    Tuple,
     Type,
     TypeVar,
     Union,
@@ -110,11 +108,6 @@ from typing import (
 )
 
 from .utils.locals import LocalStack  # XXX compat
-
-if typing.TYPE_CHECKING:  # pragma: no cover
-    from typing import AsyncContextManager, AsyncGenerator
-else:
-    from .utils.typing import AsyncContextManager, AsyncGenerator  # noqa
 
 __all__ = [
     "LocalStack",
@@ -238,8 +231,8 @@ class Proxy(Generic[T]):
     def __init__(
         self,
         local: Callable[..., T],
-        args: Tuple = None,
-        kwargs: Dict = None,
+        args: tuple = None,
+        kwargs: dict = None,
         name: str = None,
         cache: bool = False,
         __doc__: str = None,
@@ -307,7 +300,7 @@ class Proxy(Generic[T]):
 
     def __evaluate__(
         self,
-        _clean: Tuple[str, ...] = ("_Proxy__local", "_Proxy__args", "_Proxy__kwargs"),
+        _clean: tuple[str, ...] = ("_Proxy__local", "_Proxy__args", "_Proxy__kwargs"),
     ) -> T:
         thing = self._evaluate_proxy()
         cached = object.__getattribute__(self, "_Proxy__cached")
@@ -343,7 +336,7 @@ class Proxy(Generic[T]):
         return self._get_current_object()
 
     @property
-    def __dict__(self) -> Dict[str, Any]:  # type: ignore
+    def __dict__(self) -> dict[str, Any]:  # type: ignore
         try:
             return self._get_current_object().__dict__
         except RuntimeError:  # pragma: no cover
@@ -364,7 +357,7 @@ class Proxy(Generic[T]):
 
     __nonzero__ = __bool__  # Py2
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         try:
             return dir(self._get_current_object())
         except RuntimeError:  # pragma: no cover
@@ -393,8 +386,8 @@ class Proxy(Generic[T]):
     def __hash__(self) -> int:
         return hash(self._get_current_object())
 
-    def __reduce__(self) -> Tuple:
-        return cast(Tuple, self._get_current_object().__reduce__())
+    def __reduce__(self) -> tuple:
+        return cast(tuple, self._get_current_object().__reduce__())
 
 
 class AwaitableRole(Awaitable[T]):
@@ -756,7 +749,7 @@ class MappingRole(Mapping[KT, VT_co]):
     def get(self, *args: Any, **kwargs: Any) -> Any:  # noqa: F811
         return self._get_mapping().get(*args, **kwargs)
 
-    def items(self) -> AbstractSet[Tuple[KT, VT_co]]:
+    def items(self) -> AbstractSet[tuple[KT, VT_co]]:
         return self._get_mapping().items()
 
     def keys(self) -> AbstractSet[KT]:
@@ -806,7 +799,7 @@ class MutableMappingRole(MappingRole[KT, VT], MutableMapping[KT, VT]):
     def pop(self, *args: Any, **kwargs: Any) -> Any:  # noqa: F811
         return self._get_mapping().pop(*args, **kwargs)
 
-    def popitem(self) -> Tuple[KT, VT]:
+    def popitem(self) -> tuple[KT, VT]:
         return self._get_mapping().popitem()
 
     def setdefault(self, k: KT, *args: Any) -> VT:
@@ -817,7 +810,7 @@ class MutableMappingRole(MappingRole[KT, VT], MutableMapping[KT, VT]):
         ...
 
     @overload  # noqa: F811
-    def update(self, __m: Iterable[Tuple[KT, VT]], **kwargs: VT) -> None:  # noqa: F811
+    def update(self, __m: Iterable[tuple[KT, VT]], **kwargs: VT) -> None:  # noqa: F811
         ...
 
     @overload  # noqa: F811

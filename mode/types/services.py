@@ -3,12 +3,12 @@ import abc
 import asyncio
 from typing import (
     Any,
+    AsyncContextManager,
     Awaitable,
     ContextManager,
     Coroutine,
     MutableMapping,
     Optional,
-    Set,
     Type,
     TypeVar,
     Union,
@@ -16,7 +16,6 @@ from typing import (
 
 from mode.utils.contexts import AsyncExitStack, ExitStack
 from mode.utils.types.trees import NodeT
-from mode.utils.typing import AsyncContextManager
 
 from .supervisors import SupervisorStrategyT
 
@@ -33,7 +32,7 @@ AsyncFun = Union[Awaitable[T], Coroutine[Any, Any, T]]
 class DiagT(abc.ABC):
     """Diag keeps track of a services diagnostic flags."""
 
-    flags: Set[str]
+    flags: set[str]
     last_transition: MutableMapping[str, float]
 
     @abc.abstractmethod
@@ -173,7 +172,7 @@ class ServiceT(AsyncContextManager):
         ...
 
     @loop.setter
-    def loop(self, loop: Optional[asyncio.AbstractEventLoop]) -> None:
+    def loop(self, loop: asyncio.AbstractEventLoop) -> None:
         ...
 
     @property

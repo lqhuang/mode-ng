@@ -11,17 +11,7 @@ import sys
 import threading
 import traceback
 from time import monotonic
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    List,
-    NamedTuple,
-    Optional,
-    Tuple,
-    Type,
-)
+from typing import Any, Awaitable, Callable, NamedTuple, Optional, Type
 
 from .services import Service
 from .utils.futures import maybe_async, maybe_set_exception, maybe_set_result, notify
@@ -40,8 +30,8 @@ class QueuedMethod(NamedTuple):
 
     promise: asyncio.Future
     method: Callable[..., Awaitable[Any]]
-    args: Tuple[Any, ...]
-    kwargs: Dict[str, Any]
+    args: tuple[Any, ...]
+    kwargs: dict[str, Any]
 
 
 class WorkerThread(threading.Thread):
@@ -316,7 +306,7 @@ class MethodQueue(Service):
 
     _queue: asyncio.Queue
     _queue_ready: Event
-    _workers: List[MethodQueueWorker]
+    _workers: list[MethodQueueWorker]
 
     mundane_level = "debug"
 
