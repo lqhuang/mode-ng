@@ -39,13 +39,7 @@ from .utils.tracebacks import format_task_stack
 from .utils.trees import Node
 from .utils.types.trees import NodeT
 
-__all__ = [
-    "ServiceBase",
-    "Service",
-    "Diag",
-    "task",
-    "timer",
-]
+__all__ = ["ServiceBase", "Service", "Diag", "task", "timer", "crontab"]
 
 ClockArg = Callable[[], float]
 
@@ -423,7 +417,14 @@ class Service(ServiceBase, ServiceCallbacks):
         return ServiceTask(fun)
 
     @classmethod
-    def timer(cls, interval: Seconds) -> Callable[[Callable], ServiceTask]:
+    def timer(
+        cls,
+        interval: Seconds,
+        *,
+        exec_first: bool = False,
+        name: str = None,
+        max_drift_correction: float = 0.1,
+    ) -> Callable[[Callable], ServiceTask]:
         """Background timer executing every ``n`` seconds.
 
         Example:
@@ -436,10 +437,17 @@ class Service(ServiceBase, ServiceCallbacks):
         _interval = want_seconds(interval)
 
         def _decorate(fun: Callable[[ServiceT], Awaitable[None]]) -> ServiceTask:
+            _timer_name = name or qualname(fun)
+
             @wraps(fun)
             async def _repeater(self: Service) -> None:
-                await self.sleep(_interval)
-                async for sleep_time in self.itertimer(_interval, name=qualname(fun)):
+                if exec_first:
+                    await fun(self)
+                async for sleep_time in self.itertimer(
+                    _interval,
+                    name=_timer_name,
+                    max_drift_correction=max_drift_correction,
+                ):
                     await fun(self)
 
             return cls.task(_repeater)
@@ -681,9 +689,7 @@ class Service(ServiceBase, ServiceCallbacks):
         for service in reversed(services):
             await service.stop()
 
-    async def sleep(
-        self, n: Seconds, *, loop: asyncio.AbstractEventLoop = None
-    ) -> None:
+    async def sleep(self, n: Seconds) -> None:
         """Sleep for ``n`` seconds, or until service stopped."""
         try:
             await asyncio.wait_for(
@@ -1001,7 +1007,6 @@ class Service(ServiceBase, ServiceCallbacks):
         interval: Seconds,
         *,
         max_drift_correction: float = 0.1,
-        loop: asyncio.AbstractEventLoop = None,
         sleep: Callable[..., Awaitable] = None,
         clock: ClockArg = perf_counter,
         name: str = "",
@@ -1103,6 +1108,7 @@ class Service(ServiceBase, ServiceCallbacks):
 
 task = Service.task
 timer = Service.timer
+crontab = Service.crontab
 
 
 class _AwaitableService(Service):
