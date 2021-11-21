@@ -1,8 +1,8 @@
-=====================================================================
- AsyncIO Services Fork
-=====================================================================
+=====================
+AsyncIO Services Fork
+=====================
 
-|build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
+|coverage| |license| |wheel| |pyversion| |pyimp|
 
 :Version: 0.1.0
 :Web: http://mode-ng.readthedocs.org/
@@ -13,6 +13,8 @@
 
 Why the fork
 ============
+
+Original ``mode`` homepage: https://github.com/ask/mode. Thanks to its creator Ask Solem (@ask).
 
 First fork: ``mode-streaming``
 ------------------------------
@@ -35,9 +37,9 @@ A new fork: ``mode-ng``
 
 **WIP** notice. Welcome to try it in your programs and feedback!
 
-Well, here is an another fork for ``mode`` and why. Generally, my target is to
+Well, here is an another fork for ``mode``. Generally, my target is to
 create an individual and separated repository to develop ``mode`` for next
-stage/generation.
+stage/generation and keep rolling forward fastly.
 
 ``mode`` could be a very potential and powerful framework for various
 applications. So I very care about how ``faust-streaming`` and ``mode-streaming``
@@ -48,27 +50,34 @@ try to continue working on current ``mode-streaming`` branch, it's hard to me
 to know its consequences in ``faust-streaming``. I don't want to introduce
 break changes and inconsistent behaviors.
 
-Hence, ``mode-ng`` provides a new package to make some aggressive improvements,
+Hence, ``mode-ng`` provides a new package to make some aggressive improvements, do some experiments,
 and do not consider compatible problems from ``faust-streaming``. At least,
 ``mode-ng`` can be quickly used by more users with more advanced features to
-build their own applications. If in the future, this fork could be ported back
+build their own applications. In the future, if this fork could be ported back
 to ``mode-streaming`` or used as base framework of ``faust-streaming``, that
 would be really great!
 
 Here are some thoughts from practical experiences and what I want to do next step:
 
 - Bug fixes: yeah, why not.
-- Use standard library implementation: When mode was first developing,
-  many features haven't exist, so there are many hacks and trick solutions in
+- Use standard library implementations: When mode was first developed,
+  many features haven't exist, so there are many hacks and tricky solutions in
   ``mode`` codes. Like ``cached_property``, ``AsyncMock``, ``loop arguments``,
-  even Object class (missing some inner __xxx__ attrs after redefinition).
+  even ``Object`` class (missing some inner __xxx__ attrs after redefinition).
 - Port some features from faust: ``web`` module in faust is really useful for
   building application. With web part, ``mode`` is able to expose, control,
-  monitor, etc from outside api.
+  monitor and more from outside api.
 - Improve or complete left part of ``signal`` module: Some modules like ``Signal``
-  are unfinished. It's may useful for some observer patterns in programming.
-- Add some message commuting behaviors like real actors? (for threading serices?)
+  are unfinished. It will be useful for some observer patterns in programming.
+- Add some message commuting behaviors like real actors? (for thread serices?)
 - More documents and more examples
+
+Why minimal supported Python version is ``3.10``?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It's more like a personal flavor for now. But if we say `py3.6` bring us stable ``async/await`` syntax firstly to introduce wonderful coroutine concurrency, I thought `py3.10` would be the next major popular minimal supported version with a more matured `asyncio` api interfaces. From feedbacks from many real cases, ``asyncio`` interfaces have changed a lot. Happy news is it stabilized by development of std library. And Python 3.10 is faster than before, though Python is not a language which cares about speed, seldom people don't want to higher performance.
+
+This is not absolute, it aslo depends how many people want back compatibility for older versions.
 
 What is Mode?
 =============
@@ -505,9 +514,6 @@ reported by opening an issue or contacting one or more of the project maintainer
 This Code of Conduct is adapted from the Contributor Covenant,
 version 1.2.0 available at http://contributor-covenant.org/version/1/2/0/.
 
-.. |build-status| image:: https://travis-ci.com/lqhuang/mode-ng.png?branch=master
-    :alt: Build status
-    :target: https://travis-ci.com/lqhuang/mode-ng
 
 .. |coverage| image:: https://codecov.io/github/lqhuang/mode-ng/coverage.svg?branch=master
     :target: https://codecov.io/github/lqhuang/mode-ng?branch=master
