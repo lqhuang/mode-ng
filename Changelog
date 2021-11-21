@@ -4,6 +4,20 @@
  Change history
 ================
 
+.. version-0.2.0
+
+0.2.0
+=====
+:release-date: 2021-11-21
+:release-by: Lanqing Huang (:github_user:`lqhuang`)
+
+- ``f497657`` Tune bumpversion config
+- ``bfa1e59`` Add more readme content
+- ``1fa32cb`` Deprecate custom `cached_property`
+- ``a9ce977`` 1. Fix timer wait twice before execution; 2. Add arg to exectue immediately
+- ``e35d4cd`` Deprecate `mode.utils.compat` and `mode.utils.contexts`
+- ``96b6293`` Deprecate `mode.utils.typing`
+
 .. version-0.1.0
 
 0.1.0

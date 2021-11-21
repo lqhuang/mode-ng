@@ -4,7 +4,7 @@ AsyncIO Services Fork
 
 |coverage| |license| |wheel| |pyversion| |pyimp|
 
-:Version: 0.1.0
+:Version: 0.2.0
 :Web: http://mode-ng.readthedocs.org/
 :Download: https://pypi.org/project/mode-ng
 :Source: https://github.com/lqhuang/mode-ng
@@ -355,8 +355,8 @@ You can install it by doing the following:
 
 .. code:: console
 
-    $ tar xvfz mode-ng-0.1.0.tar.gz
-    $ cd mode-0.1.0
+    $ tar xvfz mode-ng-0.2.0.tar.gz
+    $ cd mode-0.2.0
     $ python setup.py build
     # python setup.py install
 
