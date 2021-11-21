@@ -1,11 +1,11 @@
 # This is code for the tutorial in README.rst
+from functools import cached_property
 from typing import Any, MutableMapping
 
 from aiohttp.web import Application
 
 from mode import Service
 from mode.threads import ServiceThread
-from mode.utils.objects import cached_property
 
 
 class User:

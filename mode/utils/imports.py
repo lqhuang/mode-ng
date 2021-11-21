@@ -5,6 +5,7 @@ import sys
 import typing
 import warnings
 from contextlib import contextmanager, suppress
+from functools import cached_property
 from types import ModuleType
 from typing import (
     Any,
@@ -24,7 +25,6 @@ from typing import (
 )
 
 from .collections import FastUserDict
-from .objects import cached_property
 from .text import didyoumean
 
 if typing.TYPE_CHECKING:

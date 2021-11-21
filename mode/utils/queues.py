@@ -1,13 +1,13 @@
 """Queue utilities - variations of :class:`asyncio.Queue`."""
 import asyncio
-import math
 import typing
 from collections import deque
+from functools import cached_property
+from math import floor
 from typing import Any, Callable, TypeVar, cast, no_type_check
 from weakref import WeakSet
 
 from .locks import Event
-from .objects import cached_property
 
 _T = TypeVar("_T")
 
@@ -191,11 +191,11 @@ class FlowControlQueue(asyncio.Queue):
 
     @cached_property
     def pressure_high_size(self) -> int:
-        return math.floor(self.maxsize / self.pressure_high_ratio)
+        return floor(self.maxsize / self.pressure_high_ratio)
 
     @cached_property
     def pressure_drop_size(self) -> int:
-        return math.floor(self.maxsize * self.pressure_drop_ratio)
+        return floor(self.maxsize * self.pressure_drop_ratio)
 
 
 class ThrowableQueue(FlowControlQueue):
