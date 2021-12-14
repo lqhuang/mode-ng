@@ -189,7 +189,7 @@ distcheck: lint test clean
 dist: readme contrib clean-dist build
 
 typecheck:
-	$(PYTHON) -m $(MYPY) -p $(PROJ)
+	$(MYPY) --pretty -p $(PROJ)
 
 .PHONY: requirements
 requirements:

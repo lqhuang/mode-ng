@@ -41,7 +41,7 @@ strict_equality = true
 show_column_numbers = true
 show_error_context = true
 show_error_codes = true
-pretty = true
+# pretty = true  # disable for IDE parser; try add cli option in Makefile
 # Incremental mode
 cache_fine_grained = true
 # Advanced options
@@ -74,10 +74,15 @@ extend-exclude = '''
 
 [tool.isort]
 profile = "black"
+line_length = 88
 known_typing = "typing"
 known_first_party = "mode"
 sections = "FUTURE,TYPING,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
-combine_as_imports = true
+
+# [tool.bandit]
+# # B101: assert_used
+# # B104: hardcoded_bind_all_interfaces
+# skips = ["B101", "B104"]
 
 [tool.towncrier]
 filename = "Changelog.rst"
