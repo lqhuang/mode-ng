@@ -1,5 +1,5 @@
 =====================
-AsyncIO Services Fork
+Mode AsyncIO Services
 =====================
 
 |coverage| |license| |wheel| |pyversion| |pyimp|
@@ -19,7 +19,7 @@ Original ``mode`` homepage: https://github.com/ask/mode. Thanks to its creator A
 First fork: ``mode-streaming``
 ------------------------------
 
-Project homepage: https://github.com/faust-streaming/mode-streaming
+Project homepage: https://github.com/faust-streaming/mode
 
 We have decided to fork the original *Mode* project because there is a critical process of releasing new versions which causes uncertainty in the community. Everybody is welcome to contribute to this *fork*, and you can be added as a manitainer.
 
@@ -75,7 +75,7 @@ Here are some thoughts from practical experiences and what I want to do next ste
 Why minimal supported Python version is ``3.10``?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It's more like a personal flavor for now. But if we say `py3.6` bring us stable ``async/await`` syntax firstly to introduce wonderful coroutine concurrency, I thought `py3.10` would be the next major popular minimal supported version with a more matured `asyncio` api interfaces. From feedbacks from many real cases, ``asyncio`` interfaces have changed a lot. Happy news is it stabilized by development of std library. And Python 3.10 is faster than before, though Python is not a language which cares about speed, seldom people don't want to higher performance.
+It's more like a personal flavor for now. But if we say ``py3.6`` bring us stable ``async/await`` syntax firstly to introduce wonderful coroutine concurrency, I thought ``py3.10`` would be the next major popular minimal supported version with a more matured ``asyncio`` api interfaces. From feedbacks from many real cases, ``asyncio`` interfaces have changed a lot. Happy news is it stabilized by development of std library. And Python 3.10 is faster than before, though Python is not a language which cares about speed, seldom people don't want to higher performance.
 
 This is not absolute, it aslo depends how many people want back compatibility for older versions.
 

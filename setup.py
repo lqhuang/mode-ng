@@ -1,71 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
 import sys
-from pathlib import Path  # noqa
+from pathlib import Path
 from platform import python_implementation
 
 from setuptools import find_packages, setup
 
 NAME = "mode-ng"
 EXTENSIONS = {"eventlet", "gevent", "uvloop"}
-E_UNSUPPORTED_PYTHON = "%s 0.1.0 requires %%s %%s or later!" % (NAME,)
+E_UNSUPPORTED_PYTHON = "%s 0.2.0 requires %%s %%s or later!" % (NAME,)
 PYIMP = python_implementation()
 
 if sys.version_info < (3, 10):
     raise Exception(E_UNSUPPORTED_PYTHON % (PYIMP, "3.10"))
 
-README = Path("README.rst")
-
-# -*- Classifiers -*-
-
-classes = """
-    Development Status :: 4 - Beta
-    License :: OSI Approved :: BSD License
-    Programming Language :: Python :: 3 :: Only
-    Programming Language :: Python :: 3.10
-    Programming Language :: Python :: Implementation :: CPython
-    Operating System :: POSIX
-    Operating System :: Microsoft :: Windows
-    Operating System :: MacOS :: MacOS X
-    Operating System :: Unix
-    Environment :: No Input/Output (Daemon)
-    Framework :: AsyncIO
-    Intended Audience :: Developers
-"""
-classifiers = [s.strip() for s in classes.split("\n") if s]
-
-# -*- Distribution Meta -*-
-
-re_meta = re.compile(r"__(\w+?)__\s*=\s*(.*)")
-re_doc = re.compile(r'^"""(.+?)"""')
-
-
-def add_default(m):
-    attr_name, attr_value = m.groups()
-    return ((attr_name, attr_value.strip("\"'")),)
-
-
-def add_doc(m):
-    return (("doc", m.groups()[0]),)
-
-
-pats = {re_meta: add_default, re_doc: add_doc}
-here = Path(__file__).parent.absolute()
-with open(here / "mode" / "__init__.py") as meta_fh:
-    meta = {}
-    for line in meta_fh:
-        if line.strip() == "# -eof meta-":
-            break
-        for pattern, handler in pats.items():
-            m = pattern.match(line.strip())
-            if m:
-                meta.update(handler(m))
-
 # -*- Installation Requires -*-
-
-
 def strip_comments(line):
     return line.split("#", 1)[0].strip()
 
@@ -97,14 +47,6 @@ def extras_require():
     return {x: extras(x + ".txt") for x in EXTENSIONS}
 
 
-# -*- Long Description -*-
-
-
-if README.exists():
-    long_description = README.read_text(encoding="utf-8")
-else:
-    long_description = "See http://pypi.org/project/{}".format(NAME)
-
 # -*- %%% -*-
 
 packages = find_packages(
@@ -115,15 +57,7 @@ assert not any(package.startswith("tests.") for package in packages)
 
 setup(
     name=NAME,
-    version=meta["version"],
-    description=meta["doc"],
-    author=meta["author"],
-    author_email=meta["contact"],
-    maintainer=meta["maintainer"],
-    url=meta["homepage"],
     platforms=["any"],
-    license="BSD",
-    keywords="asyncio service bootsteps graph coroutine",
     packages=packages,
     include_package_data=True,
     # PEP-561: https://www.python.org/dev/peps/pep-0561/
@@ -133,7 +67,4 @@ setup(
     tests_require=reqs("test.txt"),
     extras_require=extras_require(),
     python_requires=">=3.10",
-    classifiers=classifiers,
-    long_description=long_description,
-    long_description_content_type="text/x-rst",
 )
