@@ -3,18 +3,9 @@
 Workers add signal handling, logging, and other things
 required to start and manage services in a process environment.
 """
-import asyncio
-import logging as _logging
-import os
-import reprlib
-import signal
-import sys
-import traceback
-import typing
-from contextlib import contextmanager, suppress
-from logging import Handler, Logger
 from typing import (
     IO,
+    TYPE_CHECKING,
     Any,
     Callable,
     ClassVar,
@@ -26,6 +17,16 @@ from typing import (
     cast,
 )
 
+import asyncio
+import logging as _logging
+import os
+import reprlib
+import signal
+import sys
+import traceback
+from contextlib import contextmanager, suppress
+from logging import Handler, Logger
+
 from .services import Service
 from .types import ServiceT
 from .utils import logging
@@ -33,7 +34,7 @@ from .utils.futures import all_tasks, maybe_cancel
 from .utils.imports import symbol_by_name
 from .utils.times import Seconds
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from .debug import BlockingDetector
 else:
 
@@ -191,14 +192,20 @@ class Worker(Service):
                 loghandlers=self.loghandlers,
             )
         except Exception as exc:
+            # TODO: Improve stack trace info.
+            #       eg: If there is no existed parent directory for logfile,
+            #       Only raises
+            #       `CANNOT SETUP LOGGING: ValueError("Unable to configure handler 'default'")`
+            #       That would be confused for users.
             try:
-                self.stderr.write(f"CANNOT SETUP LOGGING: {exc!r} from ")
+                self.stderr.write(f"CANNOT SETUP LOGGING: {exc!r} from\n")
                 import traceback
 
                 traceback.print_stack(file=self.stderr)
             except Exception:  # noqa: S110
                 pass
             raise
+
         self.on_setup_root_logger(_logging.root, _loglevel)
         if self.redirect_stdouts:
             self._redirect_stdouts()

@@ -157,10 +157,7 @@ class HasLog(Protocol):
         ...
 
 
-LogSeverityMixinBase = HasLog
-
-
-class LogSeverityMixin(LogSeverityMixinBase):
+class LogSeverityMixin(HasLog):
     """Mixin class that delegates standard logging methods to logger.
 
     The class that mixes in this class must define the ``log`` method.
@@ -379,21 +376,19 @@ def setup_logging(
 ) -> int:
     """Configure logging subsystem."""
     stream: Optional[IO] = None
-    _loglevel: int = level_number(loglevel)
     if not isinstance(logfile, (str, Path, os.PathLike)):
         stream, logfile = logfile, None
         if stream is None:
             stream = sys.stdout
+
         global LOG_ISATTY
         try:
             LOG_ISATTY = stream.isatty()
         except AttributeError:
             pass
 
-    # if stream is None:
-    #     stream = sys.stdout
-
     logging.root.handlers.clear()
+    _loglevel: int = level_number(loglevel)
 
     _setup_logging(
         level=_loglevel,
@@ -414,6 +409,9 @@ def _setup_logging(
     logging_config: dict = None,
 ) -> None:
     handlers = {}
+
+    # FIXME: Stream and filelogger use different handlers,
+    #        they are not compatible for now.
     if filename:
         assert stream is None
         handlers.update(
@@ -427,6 +425,7 @@ def _setup_logging(
             }
         )
     elif stream:
+        assert filename is None
         handlers.update(
             {
                 "default": {
@@ -436,6 +435,7 @@ def _setup_logging(
                 },
             }
         )
+
     config = create_logconfig(
         handlers=handlers,
         root={
@@ -443,12 +443,14 @@ def _setup_logging(
             "handlers": ["default"],
         },
     )
+
     if logging_config is None:
         logging_config = config
     elif logging_config.pop("merge", False):
         logging_config = {**config, **logging_config}
         for k in ("formatters", "filters", "handlers", "loggers", "root"):
             logging_config[k] = {**config.get(k, {}), **logging_config.get(k, {})}
+
     logging.config.dictConfig(logging_config)
     if loghandlers is not None:
         logging.root.handlers.extend(loghandlers)
@@ -762,7 +764,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
     def __repr__(self) -> str:
         return f"<{self._ident()} @{id(self):#x}>"
 
-    def __enter__(self) -> "flight_recorder":
+    def __enter__(self) -> flight_recorder:
         self.activate()
         self.exit_stack.enter_context(current_flight_recorder_stack.push(self))
         self.exit_stack.__enter__()
