@@ -1,20 +1,6 @@
 """Logging utilities."""
-import abc
-import asyncio
-import logging
-import logging.config
-import os
-import sys
-import threading
-import traceback
-import typing
-from contextlib import ExitStack, contextmanager
-from functools import singledispatch, wraps
-from itertools import count
-from logging import Logger
-from pprint import pprint
-from time import asctime
-from types import TracebackType
+from __future__ import annotations
+
 from typing import (
     IO,
     Any,
@@ -34,6 +20,23 @@ from typing import (
     Union,
     cast,
 )
+
+import abc
+import asyncio
+import logging
+import logging.config
+import os
+import sys
+import threading
+import traceback
+from contextlib import ExitStack, contextmanager
+from functools import singledispatch, wraps
+from itertools import count
+from logging import Logger
+from pathlib import Path
+from pprint import pprint
+from time import asctime
+from types import TracebackType
 
 import colorlog
 
@@ -63,9 +66,8 @@ __all__ = [
     "setup_logging",
 ]
 
-HAS_STACKLEVEL = sys.version_info >= (3, 8)
-
 DEVLOG: bool = bool(os.environ.get("DEVLOG", ""))
+
 DEFAULT_FORMAT: str = """
 [%(asctime)s] [%(process)s] [%(levelname)s]: %(message)s %(extra)s
 """.strip()
@@ -73,7 +75,6 @@ DEFAULT_FORMAT: str = """
 DEFAULT_COLOR_FORMAT = """
 [%(asctime)s] [%(process)s] [%(levelname)s] %(log_color)s%(message)s %(extra)s
 """.strip()
-
 
 DEFAULT_COLORS = {
     **colorlog.default_log_colors,
@@ -95,11 +96,11 @@ DEFAULT_FORMATTERS = {
 }
 
 
-current_flight_recorder_stack: LocalStack["flight_recorder"]
+current_flight_recorder_stack: LocalStack[flight_recorder]
 current_flight_recorder_stack = LocalStack()
 
 
-def current_flight_recorder() -> Optional["flight_recorder"]:
+def current_flight_recorder() -> Optional[flight_recorder]:
     return current_flight_recorder_stack.top
 
 
@@ -120,8 +121,7 @@ def create_logconfig(
     return {
         "version": version,
         # do not disable existing loggers from other modules.
-        # see https://www.caktusgroup.com/blog/2015/01/27/
-        #    Django-Logging-Configuration-logging_config-default-settings-logger/
+        # see https://www.caktusgroup.com/blog/2015/01/27/Django-Logging-Configuration-logging_config-default-settings-logger/
         "disable_existing_loggers": disable_existing_loggers,
         "formatters": formatters,
         "handlers": handlers,
@@ -157,10 +157,7 @@ class HasLog(Protocol):
         ...
 
 
-if typing.TYPE_CHECKING:
-    LogSeverityMixinBase = HasLog
-else:
-    LogSeverityMixinBase = object
+LogSeverityMixinBase = HasLog
 
 
 class LogSeverityMixin(LogSeverityMixinBase):
@@ -181,50 +178,41 @@ class LogSeverityMixin(LogSeverityMixinBase):
     """
 
     def dev(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
-        if HAS_STACKLEVEL:
-            kwargs.setdefault("stacklevel", 3)
+        kwargs.setdefault("stacklevel", 3)
         if DEVLOG:
             self.log(logging.INFO, message, *args, **kwargs)
 
     def debug(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
-        if HAS_STACKLEVEL:
-            kwargs.setdefault("stacklevel", 3)
+        kwargs.setdefault("stacklevel", 3)
         self.log(logging.DEBUG, message, *args, **kwargs)
 
     def info(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
-        if HAS_STACKLEVEL:
-            kwargs.setdefault("stacklevel", 3)
+        kwargs.setdefault("stacklevel", 3)
         self.log(logging.INFO, message, *args, **kwargs)
 
     def warn(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
-        if HAS_STACKLEVEL:
-            kwargs.setdefault("stacklevel", 3)
+        kwargs.setdefault("stacklevel", 3)
         self.log(logging.WARN, message, *args, **kwargs)
 
     def warning(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
-        if HAS_STACKLEVEL:
-            kwargs.setdefault("stacklevel", 3)
+        kwargs.setdefault("stacklevel", 3)
         self.log(logging.WARN, message, *args, **kwargs)
 
     def error(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
-        if HAS_STACKLEVEL:
-            kwargs.setdefault("stacklevel", 3)
+        kwargs.setdefault("stacklevel", 3)
         self.log(logging.ERROR, message, *args, **kwargs)
 
     def crit(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
-        if HAS_STACKLEVEL:
-            kwargs.setdefault("stacklevel", 3)
+        kwargs.setdefault("stacklevel", 3)
         self.log(logging.CRITICAL, message, *args, **kwargs)
 
     def critical(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
-        if HAS_STACKLEVEL:
-            kwargs.setdefault("stacklevel", 3)
+        kwargs.setdefault("stacklevel", 3)
         self.log(logging.CRITICAL, message, *args, **kwargs)
 
     def exception(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
-        if HAS_STACKLEVEL:
-            kwargs.setdefault("stacklevel", 3)
-        self.log(logging.ERROR, message, *args, exc_info=1, **kwargs)
+        kwargs.setdefault("stacklevel", 3)
+        self.log(logging.ERROR, message, *args, exc_info=True, **kwargs)
 
 
 class CompositeLogger(LogSeverityMixin):
@@ -270,8 +258,7 @@ class CompositeLogger(LogSeverityMixin):
         self.formatter: Optional[Callable[..., str]] = formatter
 
     def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
-        if HAS_STACKLEVEL:
-            kwargs.setdefault("stacklevel", 2)
+        kwargs.setdefault("stacklevel", 2)
         self.logger.log(
             severity, self.format(severity, message, *args, **kwargs), *args, **kwargs
         )
@@ -385,15 +372,15 @@ def _(loglevel: str) -> int:
 
 def setup_logging(
     *,
-    loglevel: Union[str, int] = None,
-    logfile: str | IO | None = None,
+    loglevel: Severity = None,
+    logfile: Path | os.PathLike | str | IO | None = None,
     loghandlers: list[logging.Handler] = None,
     logging_config: dict = None,
 ) -> int:
     """Configure logging subsystem."""
     stream: Optional[IO] = None
     _loglevel: int = level_number(loglevel)
-    if not isinstance(logfile, str):
+    if not isinstance(logfile, (str, Path, os.PathLike)):
         stream, logfile = logfile, None
         if stream is None:
             stream = sys.stdout
@@ -403,11 +390,14 @@ def setup_logging(
         except AttributeError:
             pass
 
+    # if stream is None:
+    #     stream = sys.stdout
+
     logging.root.handlers.clear()
 
     _setup_logging(
         level=_loglevel,
-        filename=logfile,
+        filename=str(logfile),
         stream=stream,
         logging_config=logging_config,
         loghandlers=loghandlers,
@@ -708,8 +698,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
         if self._fut:
             self._buffer_log(severity, message, args, kwargs)
         else:
-            if HAS_STACKLEVEL:
-                kwargs.setdefault("stacklevel", 2)
+            kwargs.setdefault("stacklevel", 2)
             self.logger.log(severity, message, *args, **kwargs)
 
     def _buffer_log(self, severity: int, message: str, args: Any, kwargs: Any) -> None:
