@@ -12,7 +12,6 @@ from typing import (
     Iterable,
     Iterator,
     NoReturn,
-    Optional,
     Union,
     cast,
 )
@@ -24,13 +23,14 @@ import reprlib
 import signal
 import sys
 import traceback
+from asyncio import all_tasks
 from contextlib import contextmanager, suppress
 from logging import Handler, Logger
 
 from .services import Service
 from .types import ServiceT
 from .utils import logging
-from .utils.futures import all_tasks, maybe_cancel
+from .utils.futures import maybe_cancel
 from .utils.imports import symbol_by_name
 from .utils.times import Seconds
 
@@ -87,8 +87,8 @@ class Worker(Service):
     quiet: bool
     blocking_timeout: Seconds
     logging_config: dict | None
-    loglevel: Optional[Union[str, int]]
-    logfile: Optional[Union[str, IO]]
+    loglevel: Union[str, int] | None
+    logfile: Union[str, IO] | None
     console_port: int
     loghandlers: list[Handler]
     redirect_stdouts: bool
@@ -96,14 +96,14 @@ class Worker(Service):
 
     services: Iterable[ServiceT]
 
-    _blocking_detector: Optional[BlockingDetector] = None
-    _starting_fut: Optional[asyncio.Future] = None
+    _blocking_detector: BlockingDetector | None = None
+    _starting_fut: asyncio.Future | None = None
 
     # signals can be called multiple times,
     # so when stopped by signal we record the time to make sure
     # we don't start the process multiple times.
-    _signal_stop_time: Optional[float] = None
-    _signal_stop_future: Optional[asyncio.Future] = None
+    _signal_stop_time: float | None = None
+    _signal_stop_future: asyncio.Future | None = None
 
     def __init__(
         self,
@@ -115,8 +115,8 @@ class Worker(Service):
         logfile: Union[str, IO] = None,
         redirect_stdouts: bool = True,
         redirect_stdouts_level: logging.Severity = None,
-        stdout: Optional[IO] = sys.stdout,
-        stderr: Optional[IO] = sys.stderr,
+        stdout: IO | None = sys.stdout,
+        stderr: IO | None = sys.stderr,
         console_port: int = 50101,
         loghandlers: list[Handler] = None,
         blocking_timeout: Seconds = 10.0,
@@ -158,7 +158,7 @@ class Worker(Service):
         self._say(msg, file=self.stderr)
 
     def _say(
-        self, msg: str, file: Optional[IO] = None, end: str = "\n", **kwargs: Any
+        self, msg: str, file: IO | None = None, end: str = "\n", **kwargs: Any
     ) -> None:
         if file is None:
             file = self.stdout

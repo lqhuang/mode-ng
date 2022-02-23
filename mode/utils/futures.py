@@ -1,15 +1,12 @@
 """Async I/O Future utilities."""
-import asyncio
-from asyncio import all_tasks, current_task
-from inspect import isawaitable
-from typing import Any, Callable, NoReturn, Optional, Type
+from typing import Any, Callable, NoReturn, Type
 
-# These used to be here, now moved to .queues
-from .queues import FlowControlEvent, FlowControlQueue  # noqa: F401
+import asyncio
+from inspect import isawaitable
+
+# FlowControlEvent and FlowControlQueue used to be here, have been moved to .queues
 
 __all__ = [
-    "all_tasks",
-    "current_task",
     "done_future",
     "maybe_async",
     "maybe_cancel",
@@ -21,7 +18,7 @@ __all__ = [
 
 
 class StampedeWrapper:
-    fut: Optional[asyncio.Future] = None
+    fut: asyncio.Future | None = None
 
     def __init__(
         self,
@@ -126,14 +123,14 @@ async def maybe_async(res: Any) -> Any:
     return res
 
 
-def maybe_cancel(fut: Optional[asyncio.Future]) -> bool:
+def maybe_cancel(fut: asyncio.Future | None) -> bool:
     """Cancel future if it is cancellable."""
     if fut is not None and not fut.done():
         return fut.cancel()
     return False
 
 
-def maybe_set_exception(fut: Optional[asyncio.Future], exc: BaseException) -> bool:
+def maybe_set_exception(fut: asyncio.Future | None, exc: BaseException) -> bool:
     """Set future exception if not already done."""
     if fut is not None and not fut.done():
         fut.set_exception(exc)
@@ -141,7 +138,7 @@ def maybe_set_exception(fut: Optional[asyncio.Future], exc: BaseException) -> bo
     return False
 
 
-def maybe_set_result(fut: Optional[asyncio.Future], result: Any) -> bool:
+def maybe_set_result(fut: asyncio.Future | None, result: Any) -> bool:
     """Set future result if not already done."""
     if fut is not None and not fut.done():
         fut.set_result(result)
@@ -149,7 +146,7 @@ def maybe_set_result(fut: Optional[asyncio.Future], result: Any) -> bool:
     return False
 
 
-def notify(fut: Optional[asyncio.Future], result: Any = None) -> None:
+def notify(fut: asyncio.Future | None, result: Any = None) -> None:
     """Set :class:`asyncio.Future` result if future exists and is not done."""
     # can be used to turn a Future into a lockless, single-consumer condition,
     # for multi-consumer use asyncio.Condition

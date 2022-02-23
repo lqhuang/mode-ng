@@ -13,7 +13,6 @@ from typing import (
     Iterator,
     Mapping,
     NamedTuple,
-    Optional,
     Protocol,
     TextIO,
     Type,
@@ -29,6 +28,7 @@ import os
 import sys
 import threading
 import traceback
+from asyncio import all_tasks, current_task
 from contextlib import ExitStack, contextmanager
 from functools import singledispatch, wraps
 from itertools import count
@@ -40,7 +40,6 @@ from types import TracebackType
 
 import colorlog
 
-from .futures import all_tasks, current_task
 from .locals import LocalStack
 from .text import title
 from .times import Seconds, want_seconds
@@ -100,7 +99,7 @@ current_flight_recorder_stack: LocalStack[flight_recorder]
 current_flight_recorder_stack = LocalStack()
 
 
-def current_flight_recorder() -> Optional[flight_recorder]:
+def current_flight_recorder() -> flight_recorder | None:
     return current_flight_recorder_stack.top
 
 
@@ -252,7 +251,7 @@ class CompositeLogger(LogSeverityMixin):
 
     def __init__(self, logger: Logger, formatter: Callable[..., str] = None) -> None:
         self.logger = logger
-        self.formatter: Optional[Callable[..., str]] = formatter
+        self.formatter: Callable[..., str] | None = formatter
 
     def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 2)
@@ -375,7 +374,7 @@ def setup_logging(
     logging_config: dict = None,
 ) -> int:
     """Configure logging subsystem."""
-    stream: Optional[IO] = None
+    stream: IO | None = None
     if not isinstance(logfile, (str, Path, os.PathLike)):
         stream, logfile = logfile, None
         if stream is None:
@@ -642,11 +641,11 @@ class flight_recorder(ContextManager, LogSeverityMixin):
     logger: Any
     timeout: float
     loop: asyncio.AbstractEventLoop
-    started_at_date: Optional[str]
-    enabled_by: Optional[asyncio.Task]
+    started_at_date: str | None
+    enabled_by: asyncio.Task | None
     extra_context: dict[str, Any]
 
-    _fut: Optional[asyncio.Future]
+    _fut: asyncio.Future | None
     _logs: list[LogMessage]
     _default_context: dict[str, Any]
 
@@ -775,7 +774,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
         exc_type: Type[BaseException] = None,
         exc_val: BaseException = None,
         exc_tb: TracebackType = None,
-    ) -> Optional[bool]:
+    ) -> bool | None:
         self.exit_stack.__exit__(exc_type, exc_val, exc_tb)
         self.cancel()
         return None
@@ -787,7 +786,7 @@ class _FlightRecorderProxy(LogSeverityMixin):
         if fl is not None:
             return fl.log(severity, message, *args, **kwargs)
 
-    def current_flight_recorder(self) -> Optional[flight_recorder]:
+    def current_flight_recorder(self) -> flight_recorder | None:
         return current_flight_recorder()
 
 
@@ -847,7 +846,7 @@ class FileLogProxy(TextIO):
         return sys.getdefaultencoding()
 
     @property
-    def errors(self) -> Optional[str]:
+    def errors(self) -> str | None:
         return None
 
     def line_buffering(self) -> bool:
@@ -914,7 +913,7 @@ class FileLogProxy(TextIO):
     def __next__(self) -> str:
         raise NotImplementedError()
 
-    def __enter__(self) -> "FileLogProxy":
+    def __enter__(self) -> FileLogProxy:
         return self
 
     def __exit__(
@@ -922,7 +921,7 @@ class FileLogProxy(TextIO):
         exc_type: Type[BaseException] = None,
         exc_val: BaseException = None,
         exc_tb: TracebackType = None,
-    ) -> Optional[bool]:
+    ) -> bool | None:
         ...
 
 
