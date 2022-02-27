@@ -33,7 +33,6 @@ from contextlib import ExitStack, contextmanager
 from functools import singledispatch, wraps
 from itertools import count
 from logging import Logger
-from pathlib import Path
 from pprint import pprint
 from time import asctime
 from types import TracebackType
@@ -103,7 +102,7 @@ def current_flight_recorder() -> flight_recorder | None:
     return current_flight_recorder_stack.top
 
 
-def _logger_config(handlers: list[str], level: Union[str, int] = "INFO") -> dict:
+def _logger_config(handlers: list[str], level: Severity = "INFO") -> dict:
     return {
         "handlers": handlers,
         "level": level,
@@ -369,13 +368,13 @@ def _(loglevel: str) -> int:
 def setup_logging(
     *,
     loglevel: Severity = None,
-    logfile: Path | os.PathLike | str | IO | None = None,
+    logfile: os.PathLike | str | IO | None = None,
     loghandlers: list[logging.Handler] = None,
     logging_config: dict = None,
 ) -> int:
     """Configure logging subsystem."""
     stream: IO | None = None
-    if not isinstance(logfile, (str, Path, os.PathLike)):
+    if not isinstance(logfile, (str, os.PathLike)):
         stream, logfile = logfile, None
         if stream is None:
             stream = sys.stdout
@@ -401,11 +400,11 @@ def setup_logging(
 
 def _setup_logging(
     *,
-    level: Union[int, str] = None,
-    filename: str = None,
-    stream: IO = None,
-    loghandlers: list[logging.Handler] = None,
-    logging_config: dict = None,
+    level: Severity | None = None,
+    filename: str | os.PathLike | None = None,
+    stream: IO | None = None,
+    loghandlers: list[logging.Handler] | None = None,
+    logging_config: dict | None = None,
 ) -> None:
     handlers = {}
 
@@ -466,7 +465,11 @@ class Logwrapped(object):
     _ignore: ClassVar[set[str]] = {"__enter__", "__exit__"}
 
     def __init__(
-        self, obj: Any, logger: Any = None, severity: Severity = None, ident: str = ""
+        self,
+        obj: Any,
+        logger: Any = None,
+        severity: Severity | None = None,
+        ident: str = "",
     ) -> None:
         self.obj = obj
         self.logger = logger

@@ -87,8 +87,8 @@ class Worker(Service):
     quiet: bool
     blocking_timeout: Seconds
     logging_config: dict | None
-    loglevel: Union[str, int] | None
-    logfile: Union[str, IO] | None
+    loglevel: str | int | None
+    logfile: str | os.PathLike | IO | None
     console_port: int
     loghandlers: list[Handler]
     redirect_stdouts: bool
