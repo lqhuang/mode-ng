@@ -1,10 +1,10 @@
 # [build-system]
-# requires = [
-#     "setuptools",
-#     "wheel",
-#     "incremental",
-# ]
+# requires = ["setuptools>=60.0.0", "wheel", "pip"]
 # build-backend = "setuptools.build_meta"
+
+# ========================
+#          MYPY
+# ========================
 
 [tool.mypy]
 # doc: https://mypy.readthedocs.io/en/stable/config_file.html
@@ -49,13 +49,17 @@ warn_incomplete_stub = true
 # Miscellaneous
 warn_unused_configs = true
 
+
+# ========================
+#          BLACK
+# ========================
+
 # NOTE: you have to use single-quoted strings in TOML for regular expressions.
 # It's the equivalent of r-strings in Python. Multiline strings are treated as
 # verbose regular expressions by Black. Use [ ] to denote a significant space
 # character.
 [tool.black]
-line-length = 88
-target-version = ['py310']
+line-length = 79
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -74,7 +78,7 @@ extend-exclude = '''
 
 [tool.isort]
 profile = "black"
-line_length = 88
+line_length = 79
 known_typing = "typing"
 known_first_party = "mode"
 sections = "FUTURE,TYPING,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
@@ -83,6 +87,3 @@ sections = "FUTURE,TYPING,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 # # B101: assert_used
 # # B104: hardcoded_bind_all_interfaces
 # skips = ["B101", "B104"]
-
-[tool.towncrier]
-filename = "Changelog.rst"

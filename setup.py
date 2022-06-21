@@ -9,7 +9,7 @@ from setuptools import find_packages, setup
 
 NAME = "mode-ng"
 EXTENSIONS = {"eventlet", "gevent", "uvloop"}
-E_UNSUPPORTED_PYTHON = "%s 0.2.0 requires %%s %%s or later!" % (NAME,)
+E_UNSUPPORTED_PYTHON = "%s 0.3.0 requires %%s %%s or later!" % (NAME,)
 PYIMP = python_implementation()
 
 if sys.version_info < (3, 10):

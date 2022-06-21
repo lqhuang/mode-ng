@@ -2,9 +2,9 @@
 Mode AsyncIO Services
 =====================
 
-|coverage| |license| |wheel| |pyversion| |pyimp|
+|coverage| |license| |wheel| |pyversion| |pyimp| |black|
 
-:Version: 0.2.0
+:Version: 0.3.0
 :Web: http://mode-ng.readthedocs.org/
 :Download: https://pypi.org/project/mode-ng
 :Source: https://github.com/lqhuang/mode-ng
@@ -355,8 +355,8 @@ You can install it by doing the following:
 
 .. code:: console
 
-    $ tar xvfz mode-ng-0.2.0.tar.gz
-    $ cd mode-0.2.0
+    $ tar xvfz mode-ng-0.3.0.tar.gz
+    $ cd mode-0.3.0
     $ python setup.py build
     # python setup.py install
 
@@ -533,3 +533,8 @@ version 1.2.0 available at http://contributor-covenant.org/version/1/2/0/.
 .. |pyimp| image:: https://img.shields.io/pypi/implementation/mode-ng.svg
     :alt: Supported Python implementations.
     :target: http://pypi.org/project/mode-ng/
+
+.. |black| image:: https://img.shields.io/badge/code_style-black-000000.svg?style=flat
+    :alt: Use `black` as code formatter
+    :target: https://github.com/psf/black
+
