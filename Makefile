@@ -5,7 +5,6 @@ PYTEST ?= py.test
 PIP ?= pip
 GIT ?= git
 TOX ?= tox
-NOSETESTS ?= nosetests
 ICONV ?= iconv
 FLAKE8 ?= flake8
 PYDOCSTYLE ?= pydocstyle
@@ -58,47 +57,6 @@ help:
 clean: clean-docs clean-pyc clean-build
 
 clean-dist: clean clean-git-force
-
-bump:
-	$(BUMPVERSION) patch
-
-bump-minor:
-	$(BUMPVERSION) minor
-
-bump-major:
-	$(BUMPVERSION) major
-
-release:
-	$(PYTHON) -m twine upload --skip-existing dist/*
-
-. PHONY: deps-default
-deps-default:
-	$(PIP) install -U -r requirements/default.txt
-
-. PHONY: deps-dist
-deps-dist:
-	$(PIP) install -U -r requirements/dist.txt
-
-. PHONY: deps-docs
-deps-docs:
-	$(PIP) install -U -r requirements/docs.txt
-
-. PHONY: deps-test
-deps-test:
-	$(PIP) install -U -r requirements/test.txt
-
-. PHONY: deps-typecheck
-deps-typecheck:
-	$(PIP) install -U -r requirements/typecheck.txt
-
-. PHONY: deps-extras
-deps-extras:
-	$(PIP) install -U -r requirements/extras/eventlet.txt
-	$(PIP) install -U -r requirements/extras/uvloop.txt
-
-. PHONY: develop
-develop: deps-default deps-dist deps-docs deps-test deps-typecheck deps-extras
-	$(PYTHON) setup.py develop
 
 . PHONY: Documentation
 Documentation:
@@ -161,9 +119,6 @@ clean-pyc:
 
 removepyc: clean-pyc
 
-clean-build:
-	rm -rf build/ dist/ .eggs/ *.egg-info/ .tox/ .coverage cover/
-
 clean-git:
 	$(GIT) clean -xdn
 
@@ -179,11 +134,6 @@ test:
 cov:
 	$(PYTEST) -x --cov="$(PROJ)" --cov-report=html
 
-build:
-	$(PYTHON) setup.py sdist bdist_wheel
-# $(PIP) wheel --use-pep517 --use-feature=in-tree-build .
-# $(PYTHON) -m build --no-isolation .
-
 distcheck: lint test clean
 
 dist: readme contrib clean-dist build
@@ -191,12 +141,70 @@ dist: readme contrib clean-dist build
 typecheck:
 	$(MYPY) --pretty -p $(PROJ)
 
+
+# ------------------------- Dev setup ----------------------------------------
+. PHONY: venv
+venv:
+	${PYTHON} -m venv .venv --clear
+
+. PHONY: deps-default
+deps-default:
+	$(PIP) install -U -r requirements/default.txt
+
+. PHONY: deps-dist
+deps-dist:
+	$(PIP) install -U -r requirements/dist.txt
+
+. PHONY: deps-docs
+deps-docs:
+	$(PIP) install -U -r requirements/docs.txt
+
+. PHONY: deps-test
+deps-test:
+	$(PIP) install -U -r requirements/test.txt
+
+. PHONY: deps-typecheck
+deps-typecheck:
+	$(PIP) install -U -r requirements/typecheck.txt
+
+. PHONY: deps-extras
+deps-extras:
+	$(PIP) install -U -r requirements/extras/eventlet.txt
+	$(PIP) install -U -r requirements/extras/uvloop.txt
+
+. PHONY: develop
+develop: deps-default deps-dist deps-docs deps-test deps-typecheck deps-extras
+	$(PYTHON) setup.py develop
+
 .PHONY: requirements
 requirements:
-	$(PIP) install --upgrade pip;\
+	$(PIP) install --upgrade pip
 	for f in `ls requirements/` ; do $(PIP) install -r requirements/$$f ; done
 
 .PHONY: clean-requirements
 clean-requirements:
 	pip freeze | xargs pip uninstall -y
 	$(MAKE) requirements
+
+
+# ---------------------- Release distribution --------------------------------
+bump:
+	${BUMPVERSION} patch
+
+bump-minor:
+	${BUMPVERSION} minor
+
+bump-major:
+	${BUMPVERSION} major
+
+do-build:
+	${PYTHON} -m build -s -w
+
+clean-build:
+	rm -rf build/ .eggs/ *.egg-info/ .tox/ .coverage/ cover/
+
+.PHONY: build
+build: clean-build do-build
+
+release:
+	${PYTHON} -m twine upload --skip-existing dist/*

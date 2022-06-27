@@ -1,0 +1,6 @@
+setuptools
+wheel
+pip
+packaging
+build
+twine

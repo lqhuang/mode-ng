@@ -1,46 +1,16 @@
-# -*- coding: utf-8 -*-
 """AsyncIO Service-based programming."""
 # :copyright: (c) 2017-2020, Robinhood Markets
 #             (c) 2020-2021, faust-streaming Org
-#             (c) 2021, Lanqing Huang
+#             (c) 2021-2022, Lanqing Huang
 #             All rights reserved.
 # :license:   BSD (3 Clause), see LICENSE for more details.
-import re
+from typing import TYPE_CHECKING, Any, Mapping, Sequence
+
 import sys
-import typing
-
-# Lazy loading.
-# - See werkzeug/__init__.py for the rationale behind this.
+from importlib.metadata import version
 from types import ModuleType  # noqa
-from typing import Any, Mapping, NamedTuple, Sequence
 
-__version__ = "0.3.0"
-
-# -eof meta-
-
-
-class version_info_t(NamedTuple):
-    major: int
-    minor: int
-    micro: int
-    releaselevel: str
-    serial: str
-
-
-# bumpversion can only search for {current_version}
-# so we have to parse the version here.
-_match = re.match(r"(\d+)\.(\d+).(\d+)(.+)?", __version__)
-if _match is None:  # pragma: no cover
-    raise RuntimeError("MODE VERSION HAS ILLEGAL FORMAT")
-_temp = _match.groups()
-VERSION = version_info = version_info_t(
-    int(_temp[0]), int(_temp[1]), int(_temp[2]), _temp[3] or "", ""
-)
-del _match
-del _temp
-del re
-
-if typing.TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
     from .services import Service, task, timer  # noqa: E402
     from .signals import BaseSignal, Signal, SyncSignal  # noqa: E402
     from .supervisors import CrashingSupervisor  # noqa: E402
@@ -54,10 +24,17 @@ if typing.TYPE_CHECKING:  # pragma: no cover
     from .types.services import ServiceT  # noqa: E402
     from .types.signals import BaseSignalT, SignalT, SyncSignalT  # noqa: E402
     from .types.supervisors import SupervisorStrategyT  # noqa: E402
-    from .utils.logging import flight_recorder, get_logger, setup_logging  # noqa: E402
+    from .utils.logging import (  # noqa: E402
+        flight_recorder,
+        get_logger,
+        setup_logging,
+    )
     from .utils.objects import label, shortlabel  # noqa: E402
     from .utils.times import Seconds, want_seconds  # noqa: E402
     from .worker import Worker  # noqa: E402
+
+__package_name__ = "mode-ng"
+__version__ = version(__package_name__)
 
 __all__ = [
     "BaseSignal",
@@ -113,7 +90,8 @@ for module, items in all_by_module.items():
     for item in items:
         object_origins[item] = module
 
-
+# Lazy loading.
+# - See werkzeug/__init__.py for the rationale behind this.
 class _module(ModuleType):
     """Customized Python module."""
 
@@ -135,9 +113,6 @@ class _module(ModuleType):
                 "__all__",
                 "__name__",
                 "__path__",
-                "VERSION",
-                "version_info_t",
-                "version_info",
                 "__package__",
                 "__version__",
             )
@@ -152,13 +127,10 @@ new_module = sys.modules[__name__] = _module(__name__)
 new_module.__dict__.update(
     {
         "__file__": __file__,
-        "__path__": __path__,  # type: ignore
+        "__path__": __path__,
         "__doc__": __doc__,
         "__all__": tuple(object_origins),
         "__version__": __version__,
         "__package__": __package__,
-        "version_info_t": version_info_t,
-        "version_info": version_info,
-        "VERSION": VERSION,
     }
 )

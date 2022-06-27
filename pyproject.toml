@@ -1,6 +1,45 @@
-# [build-system]
-# requires = ["setuptools>=60.0.0", "wheel", "pip"]
-# build-backend = "setuptools.build_meta"
+[build-system]
+requires = [
+  "setuptools >= 60.0.0",
+  "wheel",
+  "pip",
+] # `pip` is required to install in editable mode
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mode-ng"
+version = "0.3.1"
+description = "AsyncIO Service-based programming."
+readme = "README.rst"
+requires-python = ">=3.10"
+license = { text = "BSD 3-Clause License" }
+authors = [{ name = "Ask Solem", email = "ask@celeryproject.org" }]
+maintainers = [{ name = "Lanqing Huang", email = "lqhuang@outlook.com" }]
+keywords = ["asyncio", "service", "bootsteps", "graph", "coroutine", "actor"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Operating System :: POSIX",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: MacOS :: MacOS X",
+  "Operating System :: Unix",
+  "Environment :: No Input/Output (Daemon)",
+  "Framework :: AsyncIO",
+  "Intended Audience :: Developers",
+]
+urls = { homepage = "https://github.com/lqhuang/mode-ng" }
+dynamic = ["dependencies", "optional-dependencies"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["tests", "docs", "scripts", "examples"]
+namespaces = false
+
+[tool.setuptools.package-data]
+mode = ["py.typed"]
 
 # ========================
 #          MYPY
@@ -13,7 +52,7 @@
 ignore_missing_imports = true
 follow_imports = "normal"
 # Platform configuration
-python_version = "3.10"
+# python_version = "3.10"
 # Disallow dynamic typing
 disallow_any_unimported = true
 disallow_any_expr = false
