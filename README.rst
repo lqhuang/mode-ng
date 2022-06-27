@@ -79,6 +79,48 @@ It's more like a personal flavor for now. But if we say ``py3.6`` bring us stabl
 
 This is not absolute, it aslo depends how many people want back compatibility for older versions.
 
+Installation
+============
+
+You can install Mode either via the Python Package Index (PyPI)
+or from source.
+
+To install using ``pip``:
+
+.. code:: console
+
+    $ pip install -U mode-ng
+
+Downloading and installing from source
+--------------------------------------
+
+Download the latest version of Mode from http://pypi.org/project/mode-ng
+
+You can install it by doing the following:
+
+.. code:: console
+
+    $ tar xvfz mode-ng-0.3.1.tar.gz
+    $ cd mode-0.3.1
+    $ python setup.py build
+    # python setup.py install
+
+The last command must be executed as a privileged user if
+you are not currently using a virtualenv.
+
+Using the development version
+-----------------------------
+
+With pip
+~~~~~~~~
+
+You can install the latest snapshot of Mode using the following
+pip command:
+
+.. code:: console
+
+    $ pip install https://github.com/lqhuang/mode-ng/zipball/master#egg=mode-ng
+
 What is Mode?
 =============
 
@@ -328,55 +370,6 @@ Services can start other services, coroutines, and background tasks.
                 #       until service stopped/crashed.
                 await self.sleep(1.0)
                 print('Background thread waking up')
-
-.. _installation:
-
-Installation
-============
-
-You can install Mode either via the Python Package Index (PyPI)
-or from source.
-
-To install using ``pip``:
-
-.. code:: console
-
-    $ pip install -U mode-ng
-
-.. _installing-from-source:
-
-Downloading and installing from source
---------------------------------------
-
-Download the latest version of Mode from
-http://pypi.org/project/mode-ng
-
-You can install it by doing the following:
-
-.. code:: console
-
-    $ tar xvfz mode-ng-0.3.0.tar.gz
-    $ cd mode-0.3.0
-    $ python setup.py build
-    # python setup.py install
-
-The last command must be executed as a privileged user if
-you are not currently using a virtualenv.
-
-.. _installing-from-git:
-
-Using the development version
------------------------------
-
-With pip
-~~~~~~~~
-
-You can install the latest snapshot of Mode using the following
-pip command:
-
-.. code:: console
-
-    $ pip install https://github.com/lqhuang/mode-ng/zipball/master#egg=mode-ng
 
 FAQ
 ===
