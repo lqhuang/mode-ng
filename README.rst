@@ -2,9 +2,9 @@
 Mode AsyncIO Services
 =====================
 
-|coverage| |license| |wheel| |pyversion| |pyimp| |black|
+|license| |wheel| |pyversion| |pyimp| |black|
 
-:Version: 0.3.0
+:Version: 0.3.1
 :Web: http://mode-ng.readthedocs.org/
 :Download: https://pypi.org/project/mode-ng
 :Source: https://github.com/lqhuang/mode-ng
@@ -63,7 +63,7 @@ Here are some thoughts from practical experiences and what I want to do next ste
 - Use standard library implementations: When mode was first developed,
   many features haven't exist, so there are many hacks and tricky solutions in
   ``mode`` codes. Like ``cached_property``, ``AsyncMock``, ``loop arguments``,
-  even ``Object`` class (missing some inner __xxx__ attrs after redefinition).
+  even ``Object`` class (missing some inner ``__xxx__`` attrs after redefinition).
 - Port some features from faust: ``web`` module in faust is really useful for
   building application. With web part, ``mode`` is able to expose, control,
   monitor and more from outside api.
@@ -513,10 +513,6 @@ reported by opening an issue or contacting one or more of the project maintainer
 
 This Code of Conduct is adapted from the Contributor Covenant,
 version 1.2.0 available at http://contributor-covenant.org/version/1/2/0/.
-
-
-.. |coverage| image:: https://codecov.io/github/lqhuang/mode-ng/coverage.svg?branch=master
-    :target: https://codecov.io/github/lqhuang/mode-ng?branch=master
 
 .. |license| image:: https://img.shields.io/pypi/l/mode-ng.svg
     :alt: BSD License

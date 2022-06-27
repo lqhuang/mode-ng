@@ -207,4 +207,5 @@ clean-build:
 build: clean-build do-build
 
 release:
+	${PYTHON} -m twine check dist/*
 	${PYTHON} -m twine upload --skip-existing dist/*

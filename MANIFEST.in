@@ -1,15 +1,15 @@
-include Changelog
-include LICENSE
 include README.rst
+include LICENSE
+include CHANGELOG.md
 include MANIFEST.in
 include setup.cfg
 include setup.py
-recursive-include docs *
-recursive-include extra *
-recursive-include examples *
+include pyproject.toml
+
 recursive-include tests *
-recursive-include mode *.py *.html *.typed
-recursive-include requirements *.txt *.rst
+recursive-include examples *
+recursive-include docs *
+recursive-include requirements *
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
