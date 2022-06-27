@@ -7,7 +7,6 @@ from copy import deepcopy
 import pytest
 
 from mode.utils.logging import (
-    HAS_STACKLEVEL,
     CompositeLogger,
     DefaultFormatter,
     FileLogProxy,
@@ -32,24 +31,18 @@ from mode.utils.mocks import ANY, AsyncMock, Mock, call, patch
 
 
 def test__logger_config():
-    assert _logger_config([1, 2], level="WARNING") == {
-        "handlers": [1, 2],
+    assert _logger_config(["1", "2"], level="WARNING") == {
+        "handlers": ["1", "2"],
         "level": "WARNING",
     }
 
 
 def log_called_with(logger, *args, stacklevel, **kwargs):
-    if HAS_STACKLEVEL:
-        logger.log.assert_called_once_with(*args, stacklevel=stacklevel, **kwargs)
-    else:
-        logger.log.assert_called_once_with(*args, **kwargs)
+    logger.log.assert_called_once_with(*args, stacklevel=stacklevel, **kwargs)
 
 
 def formatter_called_with(formatter, *args, stacklevel, **kwargs):
-    if HAS_STACKLEVEL:
-        formatter.assert_called_once_with(*args, stacklevel=stacklevel, **kwargs)
-    else:
-        formatter.assert_called_once_with(*args, **kwargs)
+    formatter.assert_called_once_with(*args, stacklevel=stacklevel, **kwargs)
 
 
 class test_CompositeLogger:
@@ -75,7 +68,9 @@ class test_CompositeLogger:
             stacklevel=2,
             kw=2,
         )
-        formatter_called_with(formatter, logging.INFO, "msg", 1, kw=2, stacklevel=2)
+        formatter_called_with(
+            formatter, logging.INFO, "msg", 1, kw=2, stacklevel=2
+        )
 
     def test_log__no_formatter(self, *, log, logger):
         log.formatter = None
@@ -106,7 +101,14 @@ class test_CompositeLogger:
         log.formatter = None
         getattr(log, method)("msg", "arg1", kw1=3, kw2=5)
         log_called_with(
-            logger, severity, "msg", "arg1", kw1=3, kw2=5, stacklevel=3, **extra
+            logger,
+            severity,
+            "msg",
+            "arg1",
+            kw1=3,
+            kw2=5,
+            stacklevel=3,
+            **extra,
         )
 
     def test_dev__enabled(self, log):
@@ -231,7 +233,9 @@ class test_setup_logging:
 
 class test__setup_logging:
     def setup_method(self, method):
-        self.extension_formatter_patch = patch("mode.utils.logging.ExtensionFormatter")
+        self.extension_formatter_patch = patch(
+            "mode.utils.logging.ExtensionFormatter"
+        )
         self.extension_formatter = self.extension_formatter_patch.start()
         self.colorlog_patch = patch("mode.utils.logging.colorlog")
         self.colorlog = self.colorlog_patch.start()
@@ -249,14 +253,14 @@ class test__setup_logging:
 
     def test_setup_logging_helper_both_filename_and_stream(self):
         with pytest.raises(AssertionError):
-            _setup_logging(filename="TEMP", stream=Mock())
+            _setup_logging(filename="TEMP", stream=Mock())  # type: ignore[call-arg]
 
     def test_setup_logging_helper_with_filename(self):
-        _setup_logging(filename="TEMP")
+        _setup_logging(filename="TEMP")  # type: ignore[call-arg]
         self.logging.config.dictConfig.assert_called_once_with(ANY)
 
     def test_setup_logging_helper_with_stream_no_handlers(self):
-        _setup_logging(stream=Mock())
+        _setup_logging(stream=Mock())  # type: ignore[call-arg]
         self.logging.config.dictConfig.assert_called_once_with(ANY)
 
     def test_setup_logging_helper_with_stream(self):
@@ -265,22 +269,24 @@ class test__setup_logging:
             filename=None,
             stream=Mock(),
             loghandlers=[mock_handler],
-        )
+        )  # type: ignore[call-arg]
         self.logging.config.dictConfig.assert_called_once_with(ANY)
-        self.logging.root.handlers.extend.assert_called_once_with([mock_handler])
+        self.logging.root.handlers.extend.assert_called_once_with(
+            [mock_handler]
+        )
 
     def test_setup_logging_helper_with_merge_config(self):
         _setup_logging(
             filename=None,
             stream=Mock(),
             logging_config={"merge": True, "foo": 1},
-        )
+        )  # type: ignore[call-arg]
         self.logging.config.dictConfig.assert_called_once_with(ANY)
 
     def test_setup_logging_helper_no_merge_config(self):
         _setup_logging(
             logging_config={"merge": False, "foo": 1},
-        )
+        )  # type: ignore[call-arg]
         self.logging.config.dictConfig.assert_called_once_with(ANY)
 
 
@@ -422,7 +428,7 @@ class test_flight_recorder:
         fut = bb._fut = Mock()
         bb.cancel()
         assert bb._fut is None
-        fut.cancel.assert_called_once_with()
+        fut.cancel.assert_called_once_with()  # type: ignore
 
     def test_log__active(self, bb, logger):
         bb._fut = Mock()
@@ -450,7 +456,9 @@ class test_flight_recorder:
 
     def test__buffer_log(self, bb):
         with patch("mode.utils.logging.asctime") as asctime:
-            bb._buffer_log(logging.ERROR, "msg %r %(foo)s", (1,), {"foo": "bar"})
+            bb._buffer_log(
+                logging.ERROR, "msg %r %(foo)s", (1,), {"foo": "bar"}
+            )
             assert bb._logs[-1] == LogMessage(
                 logging.ERROR,
                 "msg %r %(foo)s",
@@ -645,20 +653,33 @@ def _assert_log_severities(logger):
 
 
 def _log_kwargs(kwargs):
-    if HAS_STACKLEVEL:
-        kwargs.setdefault("stacklevel", 3)
+    kwargs.setdefault("stacklevel", 3)
     return kwargs
 
 
 EXPECTED_LOG_MESSAGES = [
-    LogMessage(logging.DEBUG, "DEBUG %d %(a)s", "TIME", (1,), _log_kwargs({"a": "A"})),
-    LogMessage(logging.INFO, "INFO %d %(b)s", "TIME", (2,), _log_kwargs({"b": "B"})),
     LogMessage(
-        logging.WARNING, "WARNING %d %(c)s", "TIME", (3,), _log_kwargs({"c": "C"})
+        logging.DEBUG, "DEBUG %d %(a)s", "TIME", (1,), _log_kwargs({"a": "A"})
     ),
-    LogMessage(logging.ERROR, "ERROR %d %(d)s", "TIME", (4,), _log_kwargs({"d": "D"})),
     LogMessage(
-        logging.CRITICAL, "CRITICAL %d %(e)s", "TIME", (5,), _log_kwargs({"e": "E"})
+        logging.INFO, "INFO %d %(b)s", "TIME", (2,), _log_kwargs({"b": "B"})
+    ),
+    LogMessage(
+        logging.WARNING,
+        "WARNING %d %(c)s",
+        "TIME",
+        (3,),
+        _log_kwargs({"c": "C"}),
+    ),
+    LogMessage(
+        logging.ERROR, "ERROR %d %(d)s", "TIME", (4,), _log_kwargs({"d": "D"})
+    ),
+    LogMessage(
+        logging.CRITICAL,
+        "CRITICAL %d %(e)s",
+        "TIME",
+        (5,),
+        _log_kwargs({"e": "E"}),
     ),
 ]
 

@@ -88,6 +88,12 @@ warn_incomplete_stub = true
 # Miscellaneous
 warn_unused_configs = true
 
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disallow_untyped_calls = false
 
 # ========================
 #          BLACK
@@ -126,3 +132,12 @@ sections = "FUTURE,TYPING,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 # # B101: assert_used
 # # B104: hardcoded_bind_all_interfaces
 # skips = ["B101", "B104"]
+
+# ========================
+#          Pytest
+# ========================
+
+[tool.pytest.ini_options]
+python_classes = "test_*"
+testpaths = ["tests"]
+asyncio_mode = "strict"   # for `pytest-asyncio`

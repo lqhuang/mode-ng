@@ -1,7 +1,7 @@
 PROJ ?= mode
 PGPIDENT ?= "Lanqing Huang"
 PYTHON ?= python
-PYTEST ?= py.test
+PYTEST ?= pytest
 PIP ?= pip
 GIT ?= git
 TOX ?= tox

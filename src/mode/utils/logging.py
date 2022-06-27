@@ -28,7 +28,7 @@ import os
 import sys
 import threading
 import traceback
-from asyncio import all_tasks, current_task
+from asyncio import all_tasks, current_task, AbstractEventLoop
 from contextlib import ExitStack, contextmanager
 from functools import singledispatch, wraps
 from itertools import count
@@ -113,8 +113,8 @@ def create_logconfig(
     version: int = 1,
     disable_existing_loggers: bool = False,
     formatters: dict = DEFAULT_FORMATTERS,
-    handlers: dict = None,
-    root: dict = None,
+    handlers: dict | None = None,
+    root: dict | None = None,
 ) -> dict:
     return {
         "version": version,
@@ -151,7 +151,9 @@ redirect_logger = get_logger("mode.redirect")
 
 class HasLog(Protocol):
     @abc.abstractmethod
-    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
+    def log(
+        self, severity: int, message: str, *args: Any, **kwargs: Any
+    ) -> None:
         ...
 
 
@@ -171,6 +173,12 @@ class LogSeverityMixin(HasLog):
         ...            *args: Any, **kwargs: Any) -> None:
         ...        return self.logger.log(severity, message, *args, **kwargs)
     """
+
+    @abc.abstractmethod
+    def log(
+        self, severity: int, message: str, *args: Any, **kwargs: Any
+    ) -> None:
+        ...
 
     def dev(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
@@ -201,11 +209,15 @@ class LogSeverityMixin(HasLog):
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.CRITICAL, message, *args, **kwargs)
 
-    def critical(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
+    def critical(
+        self: HasLog, message: str, *args: Any, **kwargs: Any
+    ) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.CRITICAL, message, *args, **kwargs)
 
-    def exception(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
+    def exception(
+        self: HasLog, message: str, *args: Any, **kwargs: Any
+    ) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.ERROR, message, *args, exc_info=True, **kwargs)
 
@@ -248,17 +260,26 @@ class CompositeLogger(LogSeverityMixin):
 
     logger: Logger
 
-    def __init__(self, logger: Logger, formatter: Callable[..., str] = None) -> None:
+    def __init__(
+        self, logger: Logger, formatter: Callable[..., str] | None = None
+    ) -> None:
         self.logger = logger
-        self.formatter: Callable[..., str] | None = formatter
+        self.formatter = formatter
 
-    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
+    def log(
+        self, severity: int, message: str, *args: Any, **kwargs: Any
+    ) -> None:
         kwargs.setdefault("stacklevel", 2)
         self.logger.log(
-            severity, self.format(severity, message, *args, **kwargs), *args, **kwargs
+            severity,
+            self.format(severity, message, *args, **kwargs),
+            *args,
+            **kwargs,
         )
 
-    def format(self, severity: int, message: str, *args: Any, **kwargs: Any) -> str:
+    def format(
+        self, severity: int, message: str, *args: Any, **kwargs: Any
+    ) -> str:
         if self.formatter:
             return self.formatter(severity, message, *args, **kwargs)
         return message
@@ -285,7 +306,9 @@ def formatter2(fun: FormatterHandler2) -> FormatterHandler2:
 
 
 def _format_extra(record: logging.LogRecord) -> str:
-    return ", ".join(f"{k}={v!r}" for k, v in record.__dict__.get("data", {}).items())
+    return ", ".join(
+        f"{k}={v!r}" for k, v in record.__dict__.get("data", {}).items()
+    )
 
 
 class DefaultFormatter(logging.Formatter):
@@ -302,7 +325,7 @@ class ExtensionFormatter(colorlog.TTYColoredFormatter):
     Extends :pypi:`colorlog`.
     """
 
-    def __init__(self, stream: IO = None, **kwargs: Any) -> None:
+    def __init__(self, stream: IO | None = None, **kwargs: Any) -> None:
         super().__init__(stream=stream or sys.stdout, **kwargs)
 
     def format(self, record: logging.LogRecord) -> str:
@@ -314,13 +337,15 @@ class ExtensionFormatter(colorlog.TTYColoredFormatter):
         format_arg = self.format_arg
         if isinstance(record.args, Mapping):
             # logger.log(severity, "msg %(foo)s", foo=303)
-            record.args = {k: format_arg(v, record) for k, v in record.args.items()}
+            record.args = {
+                k: format_arg(v, record) for k, v in record.args.items()
+            }
         else:
             if not isinstance(record.args, tuple):
                 # logger.log(severity, "msg %s", foo)
                 # mypy thinks this is unreachable as record is
                 # always Tuple
-                record.args = (record.args,)  # type: ignore
+                record.args = (record.args,)
             # logger.log(severity, "msg %s", ('foo',))
             record.args = tuple(format_arg(arg, record) for arg in record.args)
 
@@ -367,10 +392,10 @@ def _(loglevel: str) -> int:
 
 def setup_logging(
     *,
-    loglevel: Severity = None,
+    loglevel: Severity | None = None,
     logfile: os.PathLike | str | IO | None = None,
-    loghandlers: list[logging.Handler] = None,
-    logging_config: dict = None,
+    loghandlers: list[logging.Handler] | None = None,
+    logging_config: dict | None = None,
 ) -> int:
     """Configure logging subsystem."""
     stream: IO | None = None
@@ -386,11 +411,13 @@ def setup_logging(
             pass
 
     logging.root.handlers.clear()
-    _loglevel: int = level_number(loglevel)
+    _loglevel: int = (
+        logging.INFO if loglevel is None else level_number(loglevel)
+    )
 
     _setup_logging(
         level=_loglevel,
-        filename=str(logfile),
+        filename=str(logfile) if logfile is not None else None,
         stream=stream,
         logging_config=logging_config,
         loghandlers=loghandlers,
@@ -400,7 +427,7 @@ def setup_logging(
 
 def _setup_logging(
     *,
-    level: Severity | None = None,
+    level: Severity = logging.INFO,
     filename: str | os.PathLike | None = None,
     stream: IO | None = None,
     loghandlers: list[logging.Handler] | None = None,
@@ -447,7 +474,10 @@ def _setup_logging(
     elif logging_config.pop("merge", False):
         logging_config = {**config, **logging_config}
         for k in ("formatters", "filters", "handlers", "loggers", "root"):
-            logging_config[k] = {**config.get(k, {}), **logging_config.get(k, {})}
+            logging_config[k] = {
+                **config.get(k, {}),
+                **logging_config.get(k, {}),
+            }
 
     logging.config.dictConfig(logging_config)
     if loghandlers is not None:
@@ -468,12 +498,12 @@ class Logwrapped(object):
         self,
         obj: Any,
         logger: Any = None,
-        severity: Severity | None = None,
+        severity: Severity = logging.WARN,
         ident: str = "",
     ) -> None:
         self.obj = obj
         self.logger = logger
-        self.severity = level_number(severity) if severity else logging.WARN
+        self.severity = level_number(severity)
         self.ident = ident
 
     def __getattr__(self, key: str) -> Any:
@@ -495,7 +525,9 @@ class Logwrapped(object):
             if kwargs:
                 if args:
                     info += ", "
-                info += ", ".join(f"{key}={value!r}" for key, value in kwargs.items())
+                info += ", ".join(
+                    f"{key}={value!r}" for key, value in kwargs.items()
+                )
             info += ")"
             self.logger.log(self.severity, info)
             return meth(*args, **kwargs)
@@ -510,7 +542,12 @@ class Logwrapped(object):
 
 
 def cry(
-    file: IO, *, sep1: str = "=", sep2: str = "-", sep3: str = "~", seplen: int = 49
+    file: IO,
+    *,
+    sep1: str = "=",
+    sep2: str = "-",
+    sep3: str = "~",
+    seplen: int = 49,
 ) -> None:  # pragma: no cover
     """Return stack-trace of all active threads.
 
@@ -530,7 +567,7 @@ def cry(
         thread = tmap.get(tid)
         if thread:
             if thread.ident == current_thread.ident:
-                loop = asyncio.get_event_loop()
+                loop: AbstractEventLoop | None = asyncio.get_event_loop()
             else:
                 loop = getattr(thread, "loop", None)
             print(f"THREAD {thread.name}", file=file)  # noqa: T003
@@ -653,7 +690,11 @@ class flight_recorder(ContextManager, LogSeverityMixin):
     _default_context: dict[str, Any]
 
     def __init__(
-        self, logger: Any, *, timeout: Seconds, loop: asyncio.AbstractEventLoop = None
+        self,
+        logger: Any,
+        *,
+        timeout: Seconds,
+        loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
         self.id = next(self._id_source)
         self.logger = logger
@@ -698,14 +739,18 @@ class flight_recorder(ContextManager, LogSeverityMixin):
         if fut is not None:
             fut.cancel()
 
-    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
+    def log(
+        self, severity: int, message: str, *args: Any, **kwargs: Any
+    ) -> None:
         if self._fut:
             self._buffer_log(severity, message, args, kwargs)
         else:
             kwargs.setdefault("stacklevel", 2)
             self.logger.log(severity, message, *args, **kwargs)
 
-    def _buffer_log(self, severity: int, message: str, args: Any, kwargs: Any) -> None:
+    def _buffer_log(
+        self, severity: int, message: str, args: Any, kwargs: Any
+    ) -> None:
         log = LogMessage(severity, message, asctime(), args, kwargs)
         self._logs.append(log)
 
@@ -725,7 +770,9 @@ class flight_recorder(ContextManager, LogSeverityMixin):
             logger.warning("Warning: Task timed out!")
             logger.warning("Please make sure it's hanging before restart.")
             logger.info(
-                "[%s] (started at %s) Replaying logs...", ident, self.started_at_date
+                "[%s] (started at %s) Replaying logs...",
+                ident,
+                self.started_at_date,
             )
             self.flush_logs(ident=ident)
             logger.info("[%s] -End of log-", ident)
@@ -738,7 +785,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
             logger.exception("Flight recorder internal error: %r", exc)
             raise
 
-    def flush_logs(self, ident: str = None) -> None:
+    def flush_logs(self, ident: str | None = None) -> None:
         logs = self._logs
         logger = self.logger
         ident = ident or self._ident()
@@ -747,7 +794,12 @@ class flight_recorder(ContextManager, LogSeverityMixin):
                 for sev, message, datestr, args, kwargs in logs:
                     self._fill_extra_context(kwargs)
                     logger.log(
-                        sev, f"[%s] (%s) {message}", ident, datestr, *args, **kwargs
+                        sev,
+                        f"[%s] (%s) {message}",
+                        ident,
+                        datestr,
+                        *args,
+                        **kwargs,
                     )
             finally:
                 logs.clear()
@@ -784,7 +836,9 @@ class flight_recorder(ContextManager, LogSeverityMixin):
 
 
 class _FlightRecorderProxy(LogSeverityMixin):
-    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
+    def log(
+        self, severity: int, message: str, *args: Any, **kwargs: Any
+    ) -> None:
         fl = self.current_flight_recorder()
         if fl is not None:
             return fl.log(severity, message, *args, **kwargs)
@@ -800,7 +854,9 @@ class FileLogProxy(TextIO):
     _threadlocal: threading.local = threading.local()
     _closed: bool = False
 
-    def __init__(self, logger: Logger, *, severity: Severity = None) -> None:
+    def __init__(
+        self, logger: Logger, *, severity: Severity | None = None
+    ) -> None:
         self.logger = logger
         if severity:
             self.severity = level_number(severity)
@@ -904,7 +960,7 @@ class FileLogProxy(TextIO):
     def tell(self) -> int:
         raise NotImplementedError()
 
-    def truncate(self, size: int = None) -> int:
+    def truncate(self, size: int | None = None) -> int:
         raise NotImplementedError()
 
     def writable(self) -> bool:
@@ -932,7 +988,7 @@ class FileLogProxy(TextIO):
 def redirect_stdouts(
     logger: Logger = redirect_logger,
     *,
-    severity: Severity = None,
+    severity: Severity | None = None,
     stdout: bool = True,
     stderr: bool = True,
 ) -> Iterator[FileLogProxy]:
