@@ -1,19 +1,12 @@
 """Object utilities."""
 from __future__ import annotations
 
-import abc
-import collections.abc
-import sys
 import typing
-from contextlib import suppress
-from decimal import Decimal
-from functools import total_ordering
-from pathlib import Path
 from typing import (
     AbstractSet,
     Any,
-    Callable,
     ClassVar,
+    ForwardRef,
     FrozenSet,
     Generic,
     Iterable,
@@ -27,6 +20,14 @@ from typing import (
     TypeVar,
     cast,
 )
+
+import abc
+import collections.abc
+import sys
+from contextlib import suppress
+from decimal import Decimal
+from functools import total_ordering
+from pathlib import Path
 
 try:
     from typing import _eval_type  # type: ignore
@@ -59,26 +60,6 @@ else:  # pragma: no cover
     def _is_class_var(x: Any) -> bool:
         return type(x) is _ClassVar
 
-
-if typing.TYPE_CHECKING:
-
-    class ForwardRef:  # noqa
-        __forward_arg__: str
-        __forward_evaluated__: bool
-        __forward_value__: Type
-        __forward_code__: Any
-
-        def __init__(self, arg: str, is_argument: bool = True) -> None:
-            ...
-
-
-else:
-    try:
-        # CPython 3.7
-        from typing import ForwardRef
-    except ImportError:  # pragma: no cover
-        # CPython 3.6
-        from typing import _ForwardRef as ForwardRef
 
 __all__ = [
     "FieldMapping",
@@ -275,7 +256,7 @@ def _detect_main_name() -> str:  # pragma: no cover
         return ".".join(seen + [path.stem])
 
 
-def annotations(
+def reveal_annotations(
     cls: Type,
     *,
     stop: Type = object,
@@ -328,7 +309,7 @@ def annotations(
             {'z': 0.0}
     """
     fields: dict[str, Type] = {}
-    defaults: dict[str, Any] = {}  # noqa: E704 (flake8 bug)
+    defaults: dict[str, Any] = {}
     for subcls in iter_mro_reversed(cls, stop=stop):
         defaults.update(subcls.__dict__)
         with suppress(AttributeError):
@@ -408,7 +389,9 @@ def eval_type(
 
 
 def _ForwardRef_safe_eval(
-    ref: ForwardRef, globalns: dict[str, Any] = None, localns: dict[str, Any] = None
+    ref: ForwardRef,
+    globalns: dict[str, Any] = None,
+    localns: dict[str, Any] = None,
 ) -> Type:
     # On 3.6/3.7 ForwardRef._evaluate crashes if str references ClassVar
     if not ref.__forward_evaluated__:
@@ -420,7 +403,9 @@ def _ForwardRef_safe_eval(
             localns = globalns
         val = eval(ref.__forward_code__, globalns, localns)  # noqa: S307
         if not _is_class_var(val):
-            val = _type_check(val, "Forward references must evaluate to types.")
+            val = _type_check(
+                val, "Forward references must evaluate to types."
+            )
         ref.__forward_value__ = val
         ref.__forward_evaluated__ = True
     return ref.__forward_value__
@@ -485,11 +470,15 @@ def is_union(typ: Type) -> bool:
 def is_optional(typ: Type) -> bool:
     if is_union(typ):
         args = getattr(typ, "__args__", ())
-        return any([True for arg in args if arg is None or arg is type(None)])  # noqa
+        return any(
+            [True for arg in args if arg is None or arg is type(None)]
+        )  # noqa
     return False
 
 
-def _remove_optional(typ: Type, *, find_origin: bool = False) -> tuple[List[Any], Type]:
+def _remove_optional(
+    typ: Type, *, find_origin: bool = False
+) -> tuple[List[Any], Type]:
     args = getattr(typ, "__args__", ())
     if is_union(typ):
         # 3.7+: Optional[List[int]] -> Union[List[int], NoneType]

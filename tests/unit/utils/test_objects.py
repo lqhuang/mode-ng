@@ -1,7 +1,3 @@
-import abc
-import collections.abc
-import pickle
-import sys
 import typing
 from typing import (
     AbstractSet,
@@ -20,6 +16,11 @@ from typing import (
     Union,
 )
 
+import abc
+import collections.abc
+import pickle
+import sys
+
 import pytest
 
 from mode import Service, ServiceT
@@ -33,7 +34,6 @@ from mode.utils.objects import (
     _ForwardRef_safe_eval,
     _remove_optional,
     _restore_from_keywords,
-    annotations,
     canoname,
     canonshortname,
     guess_polymorphic_type,
@@ -43,6 +43,7 @@ from mode.utils.objects import (
     label,
     qualname,
     remove_optional,
+    reveal_annotations,
     shortname,
 )
 
@@ -217,7 +218,7 @@ def test_annotations():
         baz: Union[List["X"], str]
         mas: int = 3
 
-    fields, defaults = annotations(
+    fields, defaults = reveal_annotations(
         X,
         globalns=globals(),
         localns=locals(),
@@ -241,7 +242,7 @@ def test_annotations__skip_classvar():
         baz: Union[List["X"], str]
         mas: int = 3
 
-    fields, defaults = annotations(
+    fields, defaults = reveal_annotations(
         X,
         globalns=globals(),
         localns=locals(),
@@ -262,7 +263,7 @@ def test_annotations__invalid_type():
         foo: List
 
     with pytest.raises(InvalidAnnotation):
-        annotations(
+        reveal_annotations(
             X,
             globalns=globals(),
             localns=locals(),
@@ -279,7 +280,7 @@ def test_annotations__no_local_ns_raises():
         bar: "Bar"
 
     with pytest.raises(NameError):
-        annotations(
+        reveal_annotations(
             X,
             globalns=None,
             localns=None,
@@ -292,7 +293,9 @@ def test__ForwardRef_safe_eval():
     assert _ForwardRef_safe_eval(ref1) == int
     assert ref1.__forward_evaluated__
     assert ref1.__forward_value__ == int
-    assert _ForwardRef_safe_eval(ForwardRef("foo"), localns={"foo": str}) == str
+    assert (
+        _ForwardRef_safe_eval(ForwardRef("foo"), localns={"foo": str}) == str
+    )
     assert _ForwardRef_safe_eval(
         ForwardRef("ClassVar[int]"), globalns=globals(), localns=locals()
     )
