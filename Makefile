@@ -151,9 +151,9 @@ venv:
 deps-default:
 	$(PIP) install -U -r requirements/default.txt
 
-. PHONY: deps-dist
-deps-dist:
-	$(PIP) install -U -r requirements/dist.txt
+. PHONY: deps-dev
+deps-dev:
+	$(PIP) install -U -r requirements/dev.txt
 
 . PHONY: deps-docs
 deps-docs:
@@ -174,7 +174,7 @@ deps-extras:
 
 . PHONY: develop
 develop: deps-default deps-dist deps-docs deps-test deps-typecheck deps-extras
-	$(PYTHON) setup.py develop
+	${PYTHON} -m pip install -e .
 
 .PHONY: requirements
 requirements:

@@ -68,10 +68,6 @@ class test_ServiceThread:
     async def test_on_thread_stop(self, *, thread):
         await thread.on_thread_stop()
 
-    def test_constructor_executor_deprecated(self):
-        with pytest.raises(NotImplementedError):
-            ServiceThread(executor=Mock())
-
     def test_constructor_worker_argument(self):
         Worker = Mock()
         assert ServiceThread(Worker=Worker).Worker is Worker

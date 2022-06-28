@@ -1,2 +1,3 @@
 mypy
+vulture
 yarl

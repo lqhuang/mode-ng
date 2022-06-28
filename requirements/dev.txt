@@ -1,0 +1,5 @@
+-r flakes.txt
+-r typecheck.txt
+
+bumpversion
+black

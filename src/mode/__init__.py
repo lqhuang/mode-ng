@@ -108,11 +108,9 @@ class _module(ModuleType):
         result.extend(
             (
                 "__file__",
-                "__path__",
                 "__doc__",
                 "__all__",
                 "__name__",
-                "__path__",
                 "__package__",
                 "__version__",
             )
@@ -127,9 +125,9 @@ new_module = sys.modules[__name__] = _module(__name__)
 new_module.__dict__.update(
     {
         "__file__": __file__,
-        "__path__": __path__,
         "__doc__": __doc__,
         "__all__": tuple(object_origins),
+        "__name__": __name__,
         "__version__": __version__,
         "__package__": __package__,
     }
