@@ -1,11 +1,12 @@
+from typing import AsyncContextManager, ContextManager
+
 import asyncio
 import logging
-from typing import AsyncContextManager, ContextManager
+from asyncio.locks import Event
 
 import pytest
 
 import mode
-from mode.utils.locks import Event
 from mode.utils.mocks import Mock
 
 

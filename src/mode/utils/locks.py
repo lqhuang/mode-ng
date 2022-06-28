@@ -4,9 +4,15 @@ asyncio primitives call get_event_loop() in __init__,
 which makes them unsuitable for use in programs that don't
 want to pass the loop around.
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import asyncio
 from collections import deque
-from typing import Optional
+
+if TYPE_CHECKING:
+    from asyncio import AbstractEventLoop
 
 
 class Event:
@@ -20,9 +26,9 @@ class Event:
 
     _waiters: deque[asyncio.Future]
     _value: bool
-    _loop: Optional[asyncio.AbstractEventLoop]
+    _loop: AbstractEventLoop | None
 
-    def __init__(self, *, loop: asyncio.AbstractEventLoop = None) -> None:
+    def __init__(self, *, loop: AbstractEventLoop | None = None) -> None:
         self._waiters = deque()
         self._value = False
         self._loop = loop
@@ -78,7 +84,7 @@ class Event:
             self._waiters.remove(fut)
 
     @property
-    def loop(self) -> asyncio.AbstractEventLoop:
+    def loop(self) -> AbstractEventLoop:
         if self._loop is None:
             self._loop = asyncio.get_event_loop()
         return self._loop

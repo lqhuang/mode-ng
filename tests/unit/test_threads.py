@@ -1,11 +1,16 @@
 import asyncio
 import threading
+from asyncio.locks import Event
 
 import pytest
 
-from mode.threads import MethodQueue, QueueServiceThread, ServiceThread, WorkerThread
+from mode.threads import (
+    MethodQueue,
+    QueueServiceThread,
+    ServiceThread,
+    WorkerThread,
+)
 from mode.utils.futures import done_future
-from mode.utils.locks import Event
 from mode.utils.mocks import ANY, AsyncMock, Mock, patch
 
 
@@ -133,7 +138,9 @@ class test_ServiceThread:
             thread._start_thread()
             set_event_loop.assert_called_once_with(thread.loop)
             thread._serve.assert_called_once_with()
-            thread.loop.run_until_complete.assert_called_once_with(thread._serve())
+            thread.loop.run_until_complete.assert_called_once_with(
+                thread._serve()
+            )
 
     def test_start_thread__raises(self, *, thread):
         thread._serve = Mock(name="thread._serve")
