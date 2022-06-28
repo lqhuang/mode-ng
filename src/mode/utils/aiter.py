@@ -1,17 +1,11 @@
 """Async iterator lost and found missing methods: aiter, anext, etc."""
-import collections.abc
+from __future__ import annotations
+
+from typing import Any, Optional, TypeVar, cast
+
 import sys
+from collections.abc import AsyncIterable, AsyncIterator, Iterable, Iterator
 from functools import singledispatch
-from typing import (
-    Any,
-    AsyncIterable,
-    AsyncIterator,
-    Iterable,
-    Iterator,
-    Optional,
-    TypeVar,
-    cast,
-)
 
 __all__ = [
     "aenumerate",
@@ -66,14 +60,12 @@ def aiter(it: Any) -> AsyncIterator[T]:
     raise TypeError(f"{it!r} object is not an iterable")
 
 
-# XXX In Py3.7: register cannot take typing.AsyncIterator
-@aiter.register(collections.abc.AsyncIterable)
+@aiter.register(AsyncIterable)
 def _aiter_async(it: AsyncIterable[T]) -> AsyncIterator[T]:
     return it.__aiter__()
 
 
-# XXX In Py3.7: register cannot take typing.Iterable
-@aiter.register(collections.abc.Iterable)
+@aiter.register(Iterable)
 def _aiter_iter(it: Iterable[T]) -> AsyncIterator[T]:
     return AsyncIterWrapper(iter(it)).__aiter__()
 
@@ -94,8 +86,8 @@ async def anext(it: AsyncIterator[T], *default: Optional[T]) -> T:
 
 
 class _ARangeIterator(AsyncIterator[int]):
-    def __init__(self, parent: "arange", it: Iterator[int]) -> None:
-        self.parent = arange
+    def __init__(self, parent: arange, it: Iterator[int]) -> None:
+        self.parent = parent
         self.it = it
 
     def __aiter__(self) -> AsyncIterator[int]:

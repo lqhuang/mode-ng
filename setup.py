@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from pathlib import Path
 
 from pip._internal.network.session import PipSession
@@ -34,7 +34,6 @@ if __name__ == "__main__":
     setup(
         # PEP-561: https://www.python.org/dev/peps/pep-0561/
         include_package_data=True,
-        package_data={"mode": ["py.typed"]},
         install_requires=install_requires,
         extras_require=extras_require,
     )

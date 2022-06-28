@@ -2,6 +2,7 @@
 from typing import Any, Callable, NoReturn, Type
 
 import asyncio
+from asyncio.events import AbstractEventLoop
 from inspect import isawaitable
 
 # FlowControlEvent and FlowControlQueue used to be here, have been moved to .queues
@@ -24,7 +25,7 @@ class StampedeWrapper:
         self,
         fun: Callable,
         *args: Any,
-        loop: asyncio.AbstractEventLoop = None,
+        loop: AbstractEventLoop | None = None,
         **kwargs: Any
     ) -> None:
         self.fun = fun
@@ -81,7 +82,7 @@ class stampede:
         and return it once the first caller returns.
     """
 
-    def __init__(self, fget: Callable, *, doc: str = None) -> None:
+    def __init__(self, fget: Callable, *, doc: str | None = None) -> None:
         self.__get = fget
         self.__doc__ = doc or fget.__doc__
         self.__name__ = fget.__name__
@@ -103,7 +104,7 @@ class stampede:
 
 
 def done_future(
-    result: Any = None, *, loop: asyncio.AbstractEventLoop = None
+    result: Any = None, *, loop: AbstractEventLoop | None = None
 ) -> asyncio.Future:
     """Return :class:`asyncio.Future` that is already evaluated."""
     f = (loop or asyncio.get_event_loop()).create_future()
@@ -130,7 +131,9 @@ def maybe_cancel(fut: asyncio.Future | None) -> bool:
     return False
 
 
-def maybe_set_exception(fut: asyncio.Future | None, exc: BaseException) -> bool:
+def maybe_set_exception(
+    fut: asyncio.Future | None, exc: BaseException
+) -> bool:
     """Set future exception if not already done."""
     if fut is not None and not fut.done():
         fut.set_exception(exc)

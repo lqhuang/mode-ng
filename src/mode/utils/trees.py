@@ -1,15 +1,14 @@
 """Data structure: Trees."""
-from contextlib import suppress
 from typing import Any, Deque, Iterator, Optional, TypeVar, Union, cast
+
+from contextlib import suppress
 
 from .graphs import DependencyGraph
 from .objects import shortlabel
 from .types.graphs import DependencyGraphT
 from .types.trees import NodeT
 
-__all__ = [
-    "Node",
-]
+__all__ = ("Node",)
 
 T = TypeVar("T")
 
@@ -47,9 +46,9 @@ class Node(NodeT[T]):
         self,
         data: T,
         *,
-        root: NodeT = None,
-        parent: NodeT = None,
-        children: list[NodeT[T]] = None,
+        root: NodeT | None = None,
+        parent: NodeT | None = None,
+        children: list[NodeT[T]] | None = None,
     ) -> None:
         self.data = data
         if root is not None:
@@ -146,7 +145,9 @@ class Node(NodeT[T]):
 
     @property
     def path(self) -> str:
-        return "/".join(reversed([shortlabel(node.data) for node in self.walk()]))
+        return "/".join(
+            reversed([shortlabel(node.data) for node in self.walk()])
+        )
 
     @property
     def parent(self) -> Optional[NodeT]:
