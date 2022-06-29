@@ -1,16 +1,14 @@
 """Type classes for :mod:`mode.supervisors`."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Optional, Type
+
 import abc
-import typing
-from typing import Any, Awaitable, Callable, Optional, Type
 
 from mode.utils.times import Seconds
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from .services import ServiceT
-else:
-
-    class ServiceT:
-        ...  # noqa: E701
 
 
 __all__ = ["SupervisorStrategyT"]
@@ -33,7 +31,7 @@ class SupervisorStrategyT(ServiceT):
         over: Seconds = 1.0,
         raises: Type[BaseException] = None,
         replacement: ReplacementT = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         self.replacement: Optional[ReplacementT] = replacement
 

@@ -105,7 +105,6 @@ async def test_aenter():
 @pytest.mark.asyncio
 async def test_interface():
     s = Service()
-    s.on_init()
     s.__post_init__()
     await s.on_start()
     await s.on_stop()

@@ -3,3 +3,6 @@
 
 bumpversion
 black
+
+# For debugging
+aiomonitor

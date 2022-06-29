@@ -3,6 +3,8 @@
 Workers add signal handling, logging, and other things
 required to start and manage services in a process environment.
 """
+from __future__ import annotations
+
 from typing import (
     IO,
     TYPE_CHECKING,
@@ -12,7 +14,6 @@ from typing import (
     Iterable,
     Iterator,
     NoReturn,
-    Union,
     cast,
 )
 
@@ -36,11 +37,7 @@ from .utils.times import Seconds
 
 if TYPE_CHECKING:
     from .debug import BlockingDetector
-else:
-
-    class BlockingDetector:
-        ...  # noqa
-
+    from .utils.logging import Severity
 
 __all__ = ["Worker"]
 
@@ -62,7 +59,9 @@ _repr = _TupleAsListRepr().repr  # noqa: E305
 
 
 @contextmanager
-def exiting(*, print_exception: bool = False, file: IO = sys.stderr) -> Iterator[None]:
+def exiting(
+    *, print_exception: bool = False, file: IO = sys.stderr
+) -> Iterator[None]:
     try:
         yield
     except MemoryError:
@@ -87,7 +86,7 @@ class Worker(Service):
     quiet: bool
     blocking_timeout: Seconds
     logging_config: dict | None
-    loglevel: str | int | None
+    loglevel: Severity | None
     logfile: str | os.PathLike | IO | None
     console_port: int
     loghandlers: list[Handler]
@@ -111,17 +110,17 @@ class Worker(Service):
         debug: bool = False,
         quiet: bool = False,
         logging_config: dict | None = None,
-        loglevel: Union[str, int] = None,
-        logfile: Union[str, IO] = None,
+        loglevel: Severity = "INFO",
+        logfile: str | os.PathLike | IO | None = None,
+        loghandlers: list[Handler] | None = None,
         redirect_stdouts: bool = True,
-        redirect_stdouts_level: logging.Severity = None,
+        redirect_stdouts_level: Severity = "WARN",
         stdout: IO | None = sys.stdout,
         stderr: IO | None = sys.stderr,
-        console_port: int = 50101,
-        loghandlers: list[Handler] = None,
-        blocking_timeout: Seconds = 10.0,
-        loop: asyncio.AbstractEventLoop = None,
         override_logging: bool = True,
+        console_port: int = 50101,
+        blocking_timeout: Seconds = 10.0,
+        loop: asyncio.AbstractEventLoop | None = None,
         daemon: bool = True,
         **kwargs: Any,
     ) -> None:
@@ -134,7 +133,7 @@ class Worker(Service):
         self.loghandlers = loghandlers or []
         self.redirect_stdouts = redirect_stdouts
         self.redirect_stdouts_level = logging.level_number(
-            redirect_stdouts_level or "WARN"
+            redirect_stdouts_level
         )
         self.override_logging = override_logging
         self.stdout = sys.stdout if stdout is None else stdout
@@ -207,11 +206,14 @@ class Worker(Service):
             raise
 
         self.on_setup_root_logger(_logging.root, _loglevel)
+
         if self.redirect_stdouts:
             self._redirect_stdouts()
 
     def _redirect_stdouts(self) -> None:
-        self.add_context(logging.redirect_stdouts(severity=self.redirect_stdouts_level))
+        self.add_context(
+            logging.redirect_stdouts(severity=self.redirect_stdouts_level)
+        )
 
     def on_setup_root_logger(self, logger: Logger, level: int) -> None:
         ...
@@ -293,7 +295,7 @@ class Worker(Service):
                 self.on_worker_shutdown()
                 self.stop_and_shutdown()
         # for mypy NoReturn
-        raise SystemExit(EX_OK)  # pragma: no cover
+        raise SystemExit(EX_OK)
 
     def on_worker_shutdown(self) -> None:
         ...
@@ -354,11 +356,13 @@ class Worker(Service):
         try:
             import aiomonitor
         except ImportError:
-            self.log.warning("Cannot start console: aiomonitor is not installed")
+            self.log.warning(
+                "Cannot start console: aiomonitor is not installed"
+            )
         else:
             monitor = aiomonitor.start_monitor(
-                port=self.console_port,
                 loop=self.loop,
+                port=self.console_port,
             )
             self.add_context(monitor)
 
@@ -374,4 +378,4 @@ class Worker(Service):
                 beacon=self.beacon,
                 loop=self.loop,
             )
-        return cast(BlockingDetector, self._blocking_detector)
+        return self._blocking_detector

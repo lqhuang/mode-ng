@@ -93,9 +93,7 @@ DEFAULT_FORMATTERS = {
     },
 }
 
-
-current_flight_recorder_stack: LocalStack[flight_recorder]
-current_flight_recorder_stack = LocalStack()
+current_flight_recorder_stack: LocalStack[flight_recorder] = LocalStack()
 
 
 def current_flight_recorder() -> flight_recorder | None:

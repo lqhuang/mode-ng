@@ -1,7 +1,6 @@
 """Type classes for :mod:`mode.services`."""
-import abc
-import asyncio
-from contextlib import AsyncExitStack, ExitStack
+from __future__ import annotations
+
 from typing import (
     Any,
     AsyncContextManager,
@@ -14,6 +13,10 @@ from typing import (
     TypeVar,
     Union,
 )
+
+import abc
+import asyncio
+from contextlib import AsyncExitStack, ExitStack
 
 from mode.utils.types.trees import NodeT
 
@@ -61,23 +64,26 @@ class ServiceT(AsyncContextManager):
     exit_stack: ExitStack
 
     shutdown_timeout: float
-    wait_for_shutdown = False
-    _loop: Optional[asyncio.AbstractEventLoop]
+    wait_for_shutdown: bool = False
     restart_count: int = 0
     supervisor: Optional[SupervisorStrategyT] = None
+    _loop: Optional[asyncio.AbstractEventLoop]
 
     @abc.abstractmethod
     def __init__(
-        self, *, beacon: NodeT = None, loop: asyncio.AbstractEventLoop = None
+        self,
+        *,
+        beacon: NodeT | None = None,
+        loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
         ...
 
     @abc.abstractmethod
-    def add_dependency(self, service: "ServiceT") -> "ServiceT":
+    def add_dependency(self, service: ServiceT) -> ServiceT:
         ...
 
     @abc.abstractmethod
-    async def add_runtime_dependency(self, service: "ServiceT") -> "ServiceT":
+    async def add_runtime_dependency(self, service: ServiceT) -> ServiceT:
         ...
 
     @abc.abstractmethod
