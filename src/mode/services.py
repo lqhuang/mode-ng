@@ -565,18 +565,22 @@ class Service(ServiceBase, ServiceCallbacks):
     ) -> None:
         self.diag = self.Diag(self)
         self._loop = loop
+
         self._started = self._new_started_event()
         self._stopped = self._new_stopped_event()
         self._shutdown = self._new_shutdown_event()
         self._crashed = self._new_crashed_event()
         self._crash_reason = None
+
         self._beacon = Node(self) if beacon is None else beacon.new(self)
         self._children = []
         self._futures = set()
+
         self._mundane_level = level_number(self.mundane_level)
+
         self.async_exit_stack = AsyncExitStack()
         self.exit_stack = ExitStack()
-        self.on_init()
+
         self.__post_init__()
         super().__init__(loop=self._loop)
 
@@ -691,9 +695,6 @@ class Service(ServiceBase, ServiceCallbacks):
     def __post_init__(self) -> None:
         """Additional user initialization."""
         ...
-
-    def on_init(self) -> None:
-        ...  # deprecated: use __post_init__
 
     def on_init_dependencies(self) -> Iterable[ServiceT]:
         """Return list of service dependencies for this service."""
