@@ -64,7 +64,26 @@ __all__ = [
     "flight_recorder",
 ]
 
+# Lazy loading.
+# - See werkzeug/__init__.py for the rationale behind this.
+# - `werkzeug` has deprecated lazy importer.
+# - Here is pinned: https://github.com/pallets/werkzeug/blob/c3322bd51fb511fa4be6f208ad048f87d57694d7/src/werkzeug/__init__.py
 
+# This import magic raises concerns quite often which is why the implementation
+# and motivation is explained here in detail now.
+#
+# The majority of the functions and classes provided by Werkzeug work on the
+# HTTP and WSGI layer.  There is no useful grouping for those which is why
+# they are all importable from "werkzeug" instead of the modules where they are
+# implemented.  The downside of that is, that now everything would be loaded at
+# once, even if unused.
+#
+# The implementation of a lazy-loading module in this file replaces the
+# werkzeug package when imported from within.  Attribute access to the werkzeug
+# module will then lazily import from the modules that implement the objects.
+
+
+# import mapping to objects in other modules
 all_by_module: Mapping[str, Sequence[str]] = {
     "mode.services": ["Service", "task", "timer"],
     "mode.signals": ["BaseSignal", "Signal", "SyncSignal"],
@@ -90,10 +109,9 @@ for module, items in all_by_module.items():
     for item in items:
         object_origins[item] = module
 
-# Lazy loading.
-# - See werkzeug/__init__.py for the rationale behind this.
+
 class _module(ModuleType):
-    """Customized Python module."""
+    """Automatically import objects from the modules."""
 
     def __getattr__(self, name: str) -> Any:
         if name in object_origins:
@@ -121,6 +139,7 @@ class _module(ModuleType):
 # keep a reference to this module so that it's not garbage collected
 old_module = sys.modules[__name__]
 
+# setup the new module and patch it into the dict of loaded modules
 new_module = sys.modules[__name__] = _module(__name__)
 new_module.__dict__.update(
     {
