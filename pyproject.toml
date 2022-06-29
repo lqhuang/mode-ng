@@ -21,6 +21,7 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: Implementation :: CPython",
   "Operating System :: POSIX",
   "Operating System :: Microsoft :: Windows",
@@ -132,6 +133,16 @@ sections = "FUTURE,TYPING,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 # # B101: assert_used
 # # B104: hardcoded_bind_all_interfaces
 # skips = ["B101", "B104"]
+
+# ========================
+#     Pyright (pylance)
+# ========================
+
+[tool.pyright]
+# https://github.com/microsoft/pyright/blob/main/docs/configuration.md#main-pyright-config-options
+typeCheckingMode = "basic"
+reportGeneralTypeIssues = false
+# reportPrivateUsage = false
 
 # ========================
 #          Pytest
