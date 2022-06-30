@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import (
+    TYPE_CHECKING,
     Any,
     AsyncContextManager,
     Awaitable,
@@ -20,7 +21,8 @@ from contextlib import AsyncExitStack, ExitStack
 
 from mode.utils.types.trees import NodeT
 
-from .supervisors import SupervisorStrategyT
+if TYPE_CHECKING:
+    from .supervisors import SupervisorStrategyT
 
 __all__ = [
     "DiagT",

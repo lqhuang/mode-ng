@@ -1,15 +1,13 @@
 """Type classes for :mod:`mode.supervisors`."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, Optional, Type
+from typing import Any, Awaitable, Callable, Optional, Type
 
 import abc
 
 from mode.utils.times import Seconds
 
-if TYPE_CHECKING:
-    from .services import ServiceT
-
+from .services import ServiceT
 
 __all__ = ["SupervisorStrategyT"]
 
