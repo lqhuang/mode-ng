@@ -80,21 +80,21 @@ class Worker(Service):
 
     BLOCK_DETECTOR: ClassVar[str] = BLOCK_DETECTOR
 
-    stdout: IO
-    stderr: IO
     debug: bool
     quiet: bool
-    blocking_timeout: Seconds
+    stdout: IO
+    stderr: IO
+    log_level: Severity | None
+    log_file: str | os.PathLike | IO | None
+    log_handlers: list[Handler]
     logging_config: dict | None
-    loglevel: Severity | None
-    logfile: str | os.PathLike | IO | None
-    console_port: int
-    loghandlers: list[Handler]
     redirect_stdouts: bool
     redirect_stdouts_level: int
 
     services: Iterable[ServiceT]
 
+    console_port: int
+    blocking_timeout: Seconds
     _blocking_detector: BlockingDetector | None = None
     _starting_fut: asyncio.Future | None = None
 
@@ -109,35 +109,37 @@ class Worker(Service):
         *services: ServiceT,
         debug: bool = False,
         quiet: bool = False,
-        logging_config: dict | None = None,
-        loglevel: Severity = "INFO",
-        logfile: str | os.PathLike | IO | None = None,
-        loghandlers: list[Handler] | None = None,
+        log_level: Severity = _logging.INFO,
+        log_file: str | os.PathLike | IO | None = None,
+        log_handlers: list[Handler] | None = None,
         redirect_stdouts: bool = True,
-        redirect_stdouts_level: Severity = "WARN",
+        redirect_stdouts_level: Severity = _logging.WARN,
         stdout: IO | None = sys.stdout,
         stderr: IO | None = sys.stderr,
         override_logging: bool = True,
+        logging_config: dict | None = None,
         console_port: int = 50101,
         blocking_timeout: Seconds = 10.0,
-        loop: asyncio.AbstractEventLoop | None = None,
         daemon: bool = True,
+        loop: asyncio.AbstractEventLoop | None = None,
         **kwargs: Any,
     ) -> None:
         self.services = services
         self.debug = debug
         self.quiet = quiet
-        self.logging_config = logging_config
-        self.loglevel = loglevel
-        self.logfile = logfile
-        self.loghandlers = loghandlers or []
+
+        self.log_level = log_level
+        self.log_file = log_file
+        self.log_handlers = log_handlers or []
         self.redirect_stdouts = redirect_stdouts
         self.redirect_stdouts_level = logging.level_number(
             redirect_stdouts_level
         )
-        self.override_logging = override_logging
         self.stdout = sys.stdout if stdout is None else stdout
         self.stderr = sys.stderr if stderr is None else stderr
+        self.override_logging = override_logging
+        self.logging_config = logging_config
+
         self.console_port = console_port
         self.blocking_timeout = blocking_timeout
         self.daemon = daemon
@@ -185,14 +187,14 @@ class Worker(Service):
         _loglevel: int = 0
         try:
             _loglevel = logging.setup_logging(
-                loglevel=self.loglevel,
-                logfile=self.logfile,
+                log_level=self.log_level,
+                log_file=self.log_file,
+                log_handlers=self.log_handlers,
                 logging_config=self.logging_config,
-                loghandlers=self.loghandlers,
             )
         except Exception as exc:
             # TODO: Improve stack trace info.
-            #       eg: If there is no existed parent directory for logfile,
+            #       eg: If there is no existed parent directory for log_file,
             #       Only raises
             #       `CANNOT SETUP LOGGING: ValueError("Unable to configure handler 'default'")`
             #       That would be confused for users.

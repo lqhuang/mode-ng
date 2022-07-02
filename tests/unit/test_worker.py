@@ -8,7 +8,14 @@ import pytest
 
 from mode import Service
 from mode.debug import BlockingDetector
-from mode.utils.mocks import AsyncMock, Mock, call, mask_module, patch, patch_module
+from mode.utils.mocks import (
+    AsyncMock,
+    Mock,
+    call,
+    mask_module,
+    patch,
+    patch_module,
+)
 from mode.worker import Worker, exiting
 
 
@@ -24,7 +31,7 @@ def test_exiting():
 class test_Worker:
     @pytest.fixture()
     def worker(self):
-        return Worker(loglevel="INFO", logfile=None)
+        return Worker(log_level="INFO", log_file=None)
 
     def setup_method(self, method):
         self.setup_logging_patch = patch("mode.utils.logging.setup_logging")
@@ -104,7 +111,7 @@ class test_Worker:
         await worker.on_execute()
 
     @pytest.mark.parametrize(
-        "loghandlers",
+        "log_handlers",
         [
             [],
             [Mock(), Mock()],
@@ -112,19 +119,19 @@ class test_Worker:
             None,
         ],
     )
-    def test_setup_logging(self, loghandlers):
+    def test_setup_logging(self, log_handlers):
         worker_inst = Worker(
-            loglevel=5,
-            logfile="TEMP",
+            log_level=5,
+            log_file="TEMP",
+            log_handlers=log_handlers,
             logging_config=None,
-            loghandlers=loghandlers,
         )
         worker_inst._setup_logging()
         self.setup_logging.assert_called_once_with(
-            loglevel=5,
-            logfile="TEMP",
+            log_level=5,
+            log_file="TEMP",
+            log_handlers=log_handlers or [],
             logging_config=None,
-            loghandlers=loghandlers or [],
         )
 
     def test_setup_logging_raises_exception(self, worker):
@@ -158,7 +165,9 @@ class test_Worker:
         worker._signal_stop_future.done.return_value = False
         worker.stop_and_shutdown()
 
-        worker.loop.run_until_complete.assert_called_with(worker._signal_stop_future)
+        worker.loop.run_until_complete.assert_called_with(
+            worker._signal_stop_future
+        )
 
     @pytest.mark.asyncio
     async def test_maybe_start_blockdetection(self, worker):
@@ -296,7 +305,9 @@ class test_Worker:
         worker.loop = Mock()
         worker.stop_and_shutdown()
 
-        worker.loop.run_until_complete.assert_called_with(worker.stop.return_value)
+        worker.loop.run_until_complete.assert_called_with(
+            worker.stop.return_value
+        )
 
     def test__shutdown_loop(self, worker):
         with self.patch_shutdown_loop(worker, is_running=False):

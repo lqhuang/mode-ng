@@ -1,8 +1,12 @@
+from typing import IO
+
 import asyncio
 import io
 import logging
 import sys
 from copy import deepcopy
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -14,7 +18,6 @@ from mode.utils.logging import (
     Logwrapped,
     _FlightRecorderProxy,
     _formatter_registry,
-    _logger_config,
     _setup_logging,
     current_flight_recorder,
     flight_recorder,
@@ -28,13 +31,6 @@ from mode.utils.logging import (
     setup_logging,
 )
 from mode.utils.mocks import ANY, AsyncMock, Mock, call, patch
-
-
-def test__logger_config():
-    assert _logger_config(["1", "2"], level="WARNING") == {
-        "handlers": ["1", "2"],
-        "level": "WARNING",
-    }
 
 
 def log_called_with(logger, *args, stacklevel, **kwargs):
@@ -133,6 +129,15 @@ def test_formatter():
         _formatter_registry.remove(f)
 
 
+# def test_default_datefmt():
+
+#     d = datetime.now(tz=timezone.utc)
+
+#     datestr = time.strftime(DEFAULT_DATEFMT, t)
+
+#     assert datestr == d.isoformat()
+
+
 def test_DefaultFormatter():
     record = logging.LogRecord(
         "name",
@@ -181,52 +186,52 @@ def test_level_name(input, expected):
 class test_setup_logging:
     def test_default(self):
         with patch("mode.utils.logging._setup_logging") as _sl:
-            setup_logging(loglevel="INFO", logfile=None)
+            setup_logging(log_level="INFO", log_file=None)
 
             _sl.assert_called_once_with(
                 level=logging.INFO,
                 filename=None,
                 stream=sys.stdout,
-                loghandlers=None,
+                log_handlers=None,
                 logging_config=None,
             )
 
     def test_logfile(self):
         with patch("mode.utils.logging._setup_logging") as _sl:
-            setup_logging(loglevel="INFO", logfile="foo.txt")
+            setup_logging(log_level="INFO", log_file="foo.txt")
 
             _sl.assert_called_once_with(
                 level=logging.INFO,
                 filename="foo.txt",
                 stream=None,
-                loghandlers=None,
+                log_handlers=None,
                 logging_config=None,
             )
 
     def test_io(self):
-        logfile = Mock()
+        logfile = Mock(spec=IO)
         with patch("mode.utils.logging._setup_logging") as _sl:
-            setup_logging(loglevel="INFO", logfile=logfile)
+            setup_logging(log_level="INFO", log_file=logfile)
 
             _sl.assert_called_once_with(
                 level=logging.INFO,
                 filename=None,
                 stream=logfile,
-                loghandlers=None,
+                log_handlers=None,
                 logging_config=None,
             )
 
     def test_io_no_tty(self):
-        logfile = Mock()
+        logfile = Mock(spec=IO)
         logfile.isatty.side_effect = AttributeError()
         with patch("mode.utils.logging._setup_logging") as _sl:
-            setup_logging(loglevel="INFO", logfile=logfile)
+            setup_logging(log_level="INFO", log_file=logfile)
 
             _sl.assert_called_once_with(
                 level=logging.INFO,
                 filename=None,
                 stream=logfile,
-                loghandlers=None,
+                log_handlers=None,
                 logging_config=None,
             )
 
@@ -253,14 +258,14 @@ class test__setup_logging:
 
     def test_setup_logging_helper_both_filename_and_stream(self):
         with pytest.raises(AssertionError):
-            _setup_logging(filename="TEMP", stream=Mock())  # type: ignore[call-arg]
+            _setup_logging(filename="TEMP", stream=Mock())
 
     def test_setup_logging_helper_with_filename(self):
-        _setup_logging(filename="TEMP")  # type: ignore[call-arg]
+        _setup_logging(filename="TEMP")
         self.logging.config.dictConfig.assert_called_once_with(ANY)
 
     def test_setup_logging_helper_with_stream_no_handlers(self):
-        _setup_logging(stream=Mock())  # type: ignore[call-arg]
+        _setup_logging(stream=Mock())
         self.logging.config.dictConfig.assert_called_once_with(ANY)
 
     def test_setup_logging_helper_with_stream(self):
@@ -268,8 +273,8 @@ class test__setup_logging:
         _setup_logging(
             filename=None,
             stream=Mock(),
-            loghandlers=[mock_handler],
-        )  # type: ignore[call-arg]
+            log_handlers=[mock_handler],
+        )
         self.logging.config.dictConfig.assert_called_once_with(ANY)
         self.logging.root.handlers.extend.assert_called_once_with(
             [mock_handler]
@@ -280,13 +285,13 @@ class test__setup_logging:
             filename=None,
             stream=Mock(),
             logging_config={"merge": True, "foo": 1},
-        )  # type: ignore[call-arg]
+        )
         self.logging.config.dictConfig.assert_called_once_with(ANY)
 
     def test_setup_logging_helper_no_merge_config(self):
         _setup_logging(
             logging_config={"merge": False, "foo": 1},
-        )  # type: ignore[call-arg]
+        )
         self.logging.config.dictConfig.assert_called_once_with(ANY)
 
 
@@ -455,7 +460,7 @@ class test_flight_recorder:
         )
 
     def test__buffer_log(self, bb):
-        with patch("mode.utils.logging.asctime") as asctime:
+        with patch("time.asctime") as asctime:
             bb._buffer_log(
                 logging.ERROR, "msg %r %(foo)s", (1,), {"foo": "bar"}
             )
@@ -623,7 +628,7 @@ async def test_on_timeout(extra_context):
     # Test no errors when there's no active flight recorder
     _assert_log_severities(on_timeout)
 
-    with patch("mode.utils.logging.asctime") as asctime:
+    with patch("time.asctime") as asctime:
         asctime.return_value = "TIME"
         # Test logging to active flight recorder (with nesting)
         with flight_recorder(logger, timeout=300) as fl1:

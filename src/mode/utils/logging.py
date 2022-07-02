@@ -26,15 +26,16 @@ import logging.config  # needed when logging_config doesn't start with logging.c
 import os
 import sys
 import threading
+import time
 import traceback
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from asyncio import AbstractEventLoop, all_tasks, current_task
 from contextlib import ExitStack, contextmanager
+from datetime import datetime, timezone
 from functools import singledispatch, wraps
 from itertools import count
 from logging import Logger
 from pprint import pprint
-from time import asctime
 from types import TracebackType
 
 import colorlog
@@ -46,14 +47,13 @@ from .tracebacks import format_task_stack, print_task_stack
 
 __all__ = [
     "CompositeLogger",
+    "DefaultFormatter",
     "ExtensionFormatter",
     "FileLogProxy",
-    "FormatterHandler",
-    "LogSeverityMixin",
+    "flight_recorder",
     "Logwrapped",
     "Severity",
     "cry",
-    "flight_recorder",
     "formatter",
     "formatter2",
     "get_logger",
@@ -67,11 +67,11 @@ __all__ = [
 DEVLOG: bool = bool(os.environ.get("DEVLOG", ""))
 
 DEFAULT_FORMAT: str = """
-[%(asctime)s] [%(process)s] [%(levelname)s]: %(message)s %(extra)s
+[%(asctime)s] [%(process)d:%(thread)d] [%(levelname)s]: %(message)s %(extra)s
 """.strip()
 
 DEFAULT_COLOR_FORMAT = """
-[%(asctime)s] [%(process)s] [%(levelname)s] %(log_color)s%(message)s %(extra)s
+[%(asctime)s] [%(process)d:%(thread)d] [%(levelname)s] %(log_color)s%(message)s %(extra)s
 """.strip()
 
 DEFAULT_COLORS = {
@@ -79,6 +79,8 @@ DEFAULT_COLORS = {
     "INFO": "white",
     "DEBUG": "blue",
 }
+
+DEFAULT_DATEFMT = r"%Y-%m-%dT%H:%M:%S"
 
 DEFAULT_FORMATTERS = {
     "default": {
@@ -100,18 +102,12 @@ def current_flight_recorder() -> flight_recorder | None:
     return current_flight_recorder_stack.top
 
 
-def _logger_config(handlers: list[str], level: Severity = "INFO") -> dict:
-    return {
-        "handlers": handlers,
-        "level": level,
-    }
-
-
 def create_logconfig(
+    *,
     version: int = 1,
     disable_existing_loggers: bool = False,
-    filters: dict | None = None,
     formatters: dict = DEFAULT_FORMATTERS,
+    filters: dict | None = None,
     handlers: dict | None = None,
     root: dict | None = None,
 ) -> dict:
@@ -120,20 +116,20 @@ def create_logconfig(
         # do not disable existing loggers from other modules.
         # see https://www.caktusgroup.com/blog/2015/01/27/Django-Logging-Configuration-logging_config-default-settings-logger/
         "disable_existing_loggers": disable_existing_loggers,
-        "filters": filters,
         "formatters": formatters,
-        "handlers": handlers,
-        "root": root,
+        "filters": filters or {},
+        "handlers": handlers or {},
+        "root": root or {},
     }
 
 
 #: Set by ``setup_logging`` if logging target file is a TTY.
 LOG_ISATTY: bool = False
 
-FormatterHandler = Callable[[Any], Any]
-FormatterHandler2 = Callable[[Any, logging.LogRecord], Any]
 Severity = Union[int, str]
 
+FormatterHandler = Callable[[Any], Any]
+FormatterHandler2 = Callable[[Any, logging.LogRecord], Any]
 _formatter_registry: set[FormatterHandler] = set()
 _formatter_registry2: set[FormatterHandler2] = set()
 
@@ -149,7 +145,7 @@ def get_logger(name: str) -> Logger:
 redirect_logger = get_logger("mode.redirect")
 
 
-class LogSeverityMixin(Protocol, ABC):
+class LogSeverityMixin(Protocol):
     """Mixin class that delegates standard logging methods to logger.
 
     The class that mixes in this class must define the ``log`` method.
@@ -302,12 +298,28 @@ def _format_extra(record: logging.LogRecord) -> str:
 class DefaultFormatter(logging.Formatter):
     """Default formatter adds support for extra data."""
 
+    # converter = time.localtime
+    # default_time_format = "%Y-%m-%d %H:%M:%S"
+    # default_msec_format = "%s,%03d"
+
     def format(self, record: logging.LogRecord) -> str:
         record.extra = _format_extra(record)  # type: ignore
         return super().format(record)
 
+    def formatTime(
+        self, record: logging.LogRecord, datefmt: str | None = None
+    ) -> str:
+        if datefmt:
+            ct = self.converter(record.created)
+            s = time.strftime(datefmt, ct)
+        else:
+            s = datetime.fromtimestamp(
+                record.created, tz=timezone.utc
+            ).isoformat()
+        return s
 
-class ExtensionFormatter(colorlog.TTYColoredFormatter):
+
+class ExtensionFormatter(colorlog.ColoredFormatter):
     """Formatter that can register callbacks to format args.
 
     Extends :pypi:`colorlog`.
@@ -318,8 +330,20 @@ class ExtensionFormatter(colorlog.TTYColoredFormatter):
 
     def format(self, record: logging.LogRecord) -> str:
         self._format_args(record)
-        record.extra = _format_extra(record)  # type: ignore
-        return cast(str, super().format(record))  # type: ignore
+        record.extra = _format_extra(record)  # type: ignore[attr-defined]
+        return super().format(record)
+
+    def formatTime(
+        self, record: logging.LogRecord, datefmt: str | None = None
+    ) -> str:
+        if datefmt:
+            ct = self.converter(record.created)
+            s = time.strftime(datefmt, ct)
+        else:
+            s = datetime.fromtimestamp(
+                record.created, tz=timezone.utc
+            ).isoformat()
+        return s
 
     def _format_args(self, record: logging.LogRecord) -> None:
         format_arg = self.format_arg
@@ -357,49 +381,49 @@ class ExtensionFormatter(colorlog.TTYColoredFormatter):
 
 
 @singledispatch
-def level_name(loglevel: int | str) -> str:
+def level_name(log_level: int | str) -> str:
     """Convert log level to number."""
     raise NotImplementedError
 
 
 @level_name.register(int)
-def _when_int(loglevel: int) -> str:
-    return cast(str, logging.getLevelName(loglevel))
+def _when_int(log_level: int) -> str:
+    return cast(str, logging.getLevelName(log_level))
 
 
 @level_name.register(str)
-def _when_str(loglevel: str) -> str:
-    return loglevel.upper()
+def _when_str(log_level: str) -> str:
+    return log_level.upper()
 
 
 @singledispatch
-def level_number(loglevel: int | str) -> int:
+def level_number(log_level: int | str) -> int:
     """Convert log level number to name."""
     raise NotImplementedError
 
 
 @level_number.register(int)
-def _(loglevel: int) -> int:
+def _(log_level: int) -> int:
     """Convert log level number to name."""
-    return loglevel
+    return log_level
 
 
 @level_number.register(str)
-def _(loglevel: str) -> int:
-    return logging.getLevelName(loglevel.upper())  # type: ignore
+def _(log_level: str) -> int:
+    return logging.getLevelName(log_level.upper())  # type: ignore
 
 
 def setup_logging(
     *,
-    loglevel: Severity | None = None,
-    logfile: os.PathLike | str | IO | None = None,
-    loghandlers: list[logging.Handler] | None = None,
+    log_level: Severity | None = None,
+    log_file: os.PathLike | str | IO | None = None,
+    log_handlers: list[logging.Handler] | None = None,
     logging_config: dict | None = None,
 ) -> int:
     """Configure logging subsystem."""
-    stream: IO | None = None
-    if not isinstance(logfile, (str, os.PathLike)):
-        stream, logfile = logfile, None
+    if log_file is None or isinstance(log_file, IO):
+        filename = None
+        stream = log_file
         if stream is None:
             stream = sys.stdout
 
@@ -408,79 +432,89 @@ def setup_logging(
             LOG_ISATTY = stream.isatty()
         except AttributeError:
             pass
+    elif isinstance(log_file, (str, os.PathLike)):
+        stream = None
+        filename = log_file
+    else:
+        raise TypeError("")
 
-    logging.root.handlers.clear()
-    _loglevel: int = (
-        logging.INFO if loglevel is None else level_number(loglevel)
+    _log_level: int = (
+        logging.INFO if log_level is None else level_number(log_level)
     )
 
     _setup_logging(
-        level=_loglevel,
-        filename=str(logfile) if logfile is not None else None,
+        level=_log_level,
         stream=stream,
+        filename=filename,
+        log_handlers=log_handlers,
         logging_config=logging_config,
-        loghandlers=loghandlers,
     )
-    return _loglevel
+    return _log_level
 
 
 def _setup_logging(
     *,
     level: Severity = logging.INFO,
-    filename: str | os.PathLike | None = None,
     stream: IO | None = None,
-    loghandlers: list[logging.Handler] | None = None,
+    filename: str | os.PathLike | None = None,
+    log_handlers: list[logging.Handler] | None = None,
     logging_config: dict | None = None,
 ) -> None:
     handlers = {}
+    root_handlers = []
 
-    # FIXME: Stream and filelogger use different handlers,
-    #        they are not compatible for now.
-    if filename:
-        assert stream is None
-        handlers.update(
-            {
-                "default": {
-                    "level": level,
-                    "class": "logging.FileHandler",
-                    "formatter": "default",
-                    "filename": filename,
-                },
-            }
-        )
-    elif stream:
+    if stream is not None:
         assert filename is None
         handlers.update(
             {
-                "default": {
+                "default_console": {
                     "level": level,
                     "class": "colorlog.StreamHandler",
                     "formatter": "colored",
                 },
             }
         )
+        root_handlers.append("default_console")
+    elif filename is not None:
+        assert stream is None
+        handlers.update(
+            {
+                "default_file": {
+                    "level": level,
+                    "class": "logging.FileHandler",
+                    "formatter": "default",
+                    "filename": str(filename),
+                },
+            }
+        )
+        root_handlers.append("default_file")
 
     config = create_logconfig(
         handlers=handlers,
         root={
             "level": level,
-            "handlers": ["default"],
+            "handlers": root_handlers,
         },
     )
 
     if logging_config is None:
-        logging_config = config
+        final_config = config
     elif logging_config.pop("merge", False):
-        logging_config = {**config, **logging_config}
+        final_config = {**config, **logging_config}
         for k in ("formatters", "filters", "handlers", "loggers", "root"):
-            logging_config[k] = {
+            final_config[k] = {
                 **config.get(k, {}),
                 **logging_config.get(k, {}),
             }
+    else:  # do not merge, overwrite all
+        final_config = logging_config
 
-    logging.config.dictConfig(logging_config)
-    if loghandlers is not None:
-        logging.root.handlers.extend(loghandlers)
+    # TODO: Is this necessary?
+    # logging.root.handlers.clear()
+
+    logging.config.dictConfig(final_config)
+    if log_handlers is not None:
+        logging.root.handlers.extend(log_handlers)
 
 
 class Logwrapped(object):
@@ -547,7 +581,7 @@ def cry(
     sep2: str = "-",
     sep3: str = "~",
     seplen: int = 49,
-) -> None:  # pragma: no cover
+) -> None:
     """Return stack-trace of all active threads.
 
     See Also:
@@ -677,7 +711,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
 
     _id_source: ClassVar[Iterator[int]] = count(1)
 
-    logger: Any
+    logger: Logger
     timeout: float
     loop: asyncio.AbstractEventLoop
     started_at_date: str | None
@@ -690,7 +724,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
 
     def __init__(
         self,
-        logger: Any,
+        logger: Logger,
         *,
         timeout: Seconds,
         loop: asyncio.AbstractEventLoop | None = None,
@@ -725,7 +759,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
         if self._fut:
             raise RuntimeError("{type(self).__name__} already activated")
         self.enabled_by = current_task()
-        self.started_at_date = asctime()
+        self.started_at_date = time.asctime()
         current_flight_recorder = current_flight_recorder_stack.top
         if current_flight_recorder is not None:
             for k, v in current_flight_recorder.extra_context.items():
@@ -750,7 +784,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
     def _buffer_log(
         self, severity: int, message: str, args: Any, kwargs: Any
     ) -> None:
-        log = LogMessage(severity, message, asctime(), args, kwargs)
+        log = LogMessage(severity, message, time.asctime(), args, kwargs)
         self._logs.append(log)
 
     async def _waiting(self) -> None:
@@ -857,10 +891,13 @@ class FileLogProxy(TextIO):
         self, logger: Logger, *, severity: Severity | None = None
     ) -> None:
         self.logger = logger
-        if severity:
+
+        if severity is not None:
             self.severity = level_number(severity)
         elif self.logger.level:
             self.severity = self.logger.level
+        # `self.severity` has default value in class variable def part.
+
         self._safewrap_handlers()
 
     def _safewrap_handlers(self) -> None:
@@ -878,7 +915,7 @@ class FileLogProxy(TextIO):
                 except IOError:
                     pass  # see python issue 5971
 
-        handler.handleError = WithSafeHandleError().handleError  # type: ignore
+        handler.handleError = WithSafeHandleError().handleError  # type: ignore[assignment]
 
     def write(self, s: AnyStr) -> int:
         if not getattr(self._threadlocal, "recurse_protection", False):
