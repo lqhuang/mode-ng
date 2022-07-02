@@ -10,6 +10,21 @@ Mode AsyncIO Services
 :Source: https://github.com/lqhuang/mode-ng
 :Keywords: async, service, framework, actors, bootsteps, graph
 
+.. |license| image:: https://img.shields.io/pypi/l/mode-ng.svg
+    :alt: BSD License
+    :target: https://opensource.org/licenses/BSD-3-Clause
+.. |wheel| image:: https://img.shields.io/pypi/wheel/mode-ng.svg
+    :alt: Mode can be installed via wheel
+    :target: http://pypi.org/project/mode-ng/
+.. |pyversion| image:: https://img.shields.io/pypi/pyversions/mode-ng.svg
+    :alt: Supported Python versions.
+    :target: http://pypi.org/project/mode-ng/
+.. |pyimp| image:: https://img.shields.io/pypi/implementation/mode-ng.svg
+    :alt: Supported Python implementations.
+    :target: http://pypi.org/project/mode-ng/
+.. |black| image:: https://img.shields.io/badge/code_style-black-000000.svg?style=flat
+    :alt: Use `black` as code formatter
+    :target: https://github.com/psf/black
 
 Why the fork
 ============
@@ -463,28 +478,18 @@ If you get warnings such as this at shutdown:
 
 It usually means you forgot to stop a service before the process exited.
 
+
+Contributing
+============
+
+For guidance on setting up a development environment and how to make a contribution
+to `mode-ng`, see the `contributing guidelines`_.
+
+.. _contributing guidelines: https://github.com/lqhuang/mode-ng/blob/master/CONTRIBUTING.md
+
 Code of Conduct
 ===============
 
-Check [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.rst) for more details.
+Check `code of conduct`_ for recommended or discouraged behaviors while communicating.
 
-.. |license| image:: https://img.shields.io/pypi/l/mode-ng.svg
-    :alt: BSD License
-    :target: https://opensource.org/licenses/BSD-3-Clause
-
-.. |wheel| image:: https://img.shields.io/pypi/wheel/mode-ng.svg
-    :alt: Mode can be installed via wheel
-    :target: http://pypi.org/project/mode-ng/
-
-.. |pyversion| image:: https://img.shields.io/pypi/pyversions/mode-ng.svg
-    :alt: Supported Python versions.
-    :target: http://pypi.org/project/mode-ng/
-
-.. |pyimp| image:: https://img.shields.io/pypi/implementation/mode-ng.svg
-    :alt: Supported Python implementations.
-    :target: http://pypi.org/project/mode-ng/
-
-.. |black| image:: https://img.shields.io/badge/code_style-black-000000.svg?style=flat
-    :alt: Use `black` as code formatter
-    :target: https://github.com/psf/black
-
+.. _code of conduct: https://github.com/lqhuang/mode-ng/blob/master/CODE_OF_CONDUCT.md
