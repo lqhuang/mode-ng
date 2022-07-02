@@ -120,7 +120,7 @@ class Bucket(AsyncContextManager):
         fill_rate: Seconds = None,
         capacity: Seconds = None,
         raises: Type[BaseException] = None,
-        loop: asyncio.AbstractEventLoop = None
+        loop: asyncio.AbstractEventLoop = None,
     ) -> None:
         self.rate = want_seconds(rate)
         self.capacity = want_seconds(over)
@@ -206,7 +206,7 @@ class TokenBucket(Bucket):
 @singledispatch
 def rate(r: float | str | int | None) -> float:
     """Convert rate string (`"100/m"`, `"2/h"` or `"0.5/s"`) to seconds."""
-    raise NotImplementedError
+    raise TypeError(f"Unexpected type {type(r)}")
 
 
 @rate.register(int)
@@ -232,7 +232,7 @@ def rate_limit(
     *,
     bucket_type: Type[Bucket] = TokenBucket,
     raises: Type[BaseException] = None,
-    loop: asyncio.AbstractEventLoop = None
+    loop: asyncio.AbstractEventLoop = None,
 ) -> Bucket:
     """Create rate limiting manager."""
     return bucket_type(rate, over, raises=raises, loop=loop)
@@ -241,7 +241,7 @@ def rate_limit(
 @singledispatch
 def want_seconds(s: int | float | str | timedelta) -> float:
     """Convert :data:`Seconds` to float."""
-    raise NotImplementedError
+    raise TypeError(f"Unexpected type {type(s)}")
 
 
 @want_seconds.register(int)
@@ -267,7 +267,7 @@ def humanize_seconds(
     suffix: str = "",
     sep: str = "",
     now: str = "now",
-    microseconds: bool = False
+    microseconds: bool = False,
 ) -> str:
     """Show seconds in human form.
 
@@ -303,7 +303,7 @@ def humanize_seconds_ago(
     suffix: str = " ago",
     sep: str = "",
     now: str = "just now",
-    microseconds: bool = False
+    microseconds: bool = False,
 ) -> str:
     """Show seconds in "3.33 seconds ago" form.
 

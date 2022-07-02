@@ -104,7 +104,7 @@ class test_Worker:
         self._setup_for_on_first_start(worker)
         await worker.on_first_start()
 
-        worker._setup_logging.assert_not_called()
+        worker._setup_logging.assert_not_called()  # type: ignore[attr-defined]
 
     @pytest.mark.asyncio
     async def test_on_execute(self, worker):
