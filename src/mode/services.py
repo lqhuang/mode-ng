@@ -728,6 +728,7 @@ class Service(ServiceBase, ServiceCallbacks):
         self, *coros: WaitArgT, timeout: Seconds | None = None
     ) -> WaitResult:
         """Wait for coroutines to complete, or until the service stops."""
+        timeout = want_seconds(timeout) if timeout is not None else None
         if coros:
             assert len(coros) == 1
             return await self._wait_one(coros[0], timeout=timeout)
@@ -738,17 +739,18 @@ class Service(ServiceBase, ServiceCallbacks):
     async def wait_many(
         self, coros: Iterable[WaitArgT], *, timeout: Seconds | None = None
     ) -> WaitResult:
+        timeout = want_seconds(timeout) if timeout is not None else None
         coro = asyncio.wait(
             cast(Iterable[Awaitable[Any]], coros),
             return_when=asyncio.ALL_COMPLETED,
-            timeout=want_seconds(timeout),
+            timeout=timeout,
         )
         return await self._wait_one(coro, timeout=timeout)
 
     async def wait_first(
         self, *coros: WaitArgT, timeout: Seconds | None = None
     ) -> WaitResults:
-        _coros: Mapping[WaitArgT, FutureT]
+        # _coros: Mapping[WaitArgT, FutureT]
         timeout = want_seconds(timeout) if timeout is not None else None
         stopped = self._stopped
         crashed = self._crashed
@@ -795,15 +797,14 @@ class Service(ServiceBase, ServiceCallbacks):
                     fut.cancel()
 
     async def _wait_one(
-        self, coro: WaitArgT, *, timeout: Seconds | None = None
+        self, coro: WaitArgT, *, timeout: float | None = None
     ) -> WaitResult:
         results = await self.wait_first(coro, timeout=timeout)
         if results.stopped:
             return WaitResult(None, True)
         return WaitResult(results.results[0], False)
 
-    async def _wait_stopped(self, timeout: Seconds | None = None) -> None:
-        timeout = want_seconds(timeout) if timeout is not None else None
+    async def _wait_stopped(self, timeout: float | None = None) -> None:
         stopped = self._stopped.wait()
         crashed = self._crashed.wait()
         done, pending = await asyncio.wait(

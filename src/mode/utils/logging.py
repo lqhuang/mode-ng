@@ -20,15 +20,15 @@ from typing import (
     cast,
 )
 
-import abc
 import asyncio
 import logging
-import logging.config
+import logging.config  # needed when logging_config doesn't start with logging.config
 import os
 import sys
 import threading
 import traceback
-from asyncio import all_tasks, current_task, AbstractEventLoop
+from abc import ABC, abstractmethod
+from asyncio import AbstractEventLoop, all_tasks, current_task
 from contextlib import ExitStack, contextmanager
 from functools import singledispatch, wraps
 from itertools import count
@@ -110,6 +110,7 @@ def _logger_config(handlers: list[str], level: Severity = "INFO") -> dict:
 def create_logconfig(
     version: int = 1,
     disable_existing_loggers: bool = False,
+    filters: dict | None = None,
     formatters: dict = DEFAULT_FORMATTERS,
     handlers: dict | None = None,
     root: dict | None = None,
@@ -119,6 +120,7 @@ def create_logconfig(
         # do not disable existing loggers from other modules.
         # see https://www.caktusgroup.com/blog/2015/01/27/Django-Logging-Configuration-logging_config-default-settings-logger/
         "disable_existing_loggers": disable_existing_loggers,
+        "filters": filters,
         "formatters": formatters,
         "handlers": handlers,
         "root": root,
@@ -147,15 +149,7 @@ def get_logger(name: str) -> Logger:
 redirect_logger = get_logger("mode.redirect")
 
 
-class HasLog(Protocol):
-    @abc.abstractmethod
-    def log(
-        self, severity: int, message: str, *args: Any, **kwargs: Any
-    ) -> None:
-        ...
-
-
-class LogSeverityMixin(HasLog):
+class LogSeverityMixin(Protocol, ABC):
     """Mixin class that delegates standard logging methods to logger.
 
     The class that mixes in this class must define the ``log`` method.
@@ -172,50 +166,46 @@ class LogSeverityMixin(HasLog):
         ...        return self.logger.log(severity, message, *args, **kwargs)
     """
 
-    @abc.abstractmethod
+    @abstractmethod
     def log(
         self, severity: int, message: str, *args: Any, **kwargs: Any
     ) -> None:
         ...
 
-    def dev(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
+    def dev(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         if DEVLOG:
             self.log(logging.INFO, message, *args, **kwargs)
 
-    def debug(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
+    def debug(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.DEBUG, message, *args, **kwargs)
 
-    def info(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
+    def info(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.INFO, message, *args, **kwargs)
 
-    def warn(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
+    def warn(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.WARN, message, *args, **kwargs)
 
-    def warning(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
+    def warning(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.WARN, message, *args, **kwargs)
 
-    def error(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
+    def error(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.ERROR, message, *args, **kwargs)
 
-    def crit(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
+    def crit(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.CRITICAL, message, *args, **kwargs)
 
-    def critical(
-        self: HasLog, message: str, *args: Any, **kwargs: Any
-    ) -> None:
+    def critical(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.CRITICAL, message, *args, **kwargs)
 
-    def exception(
-        self: HasLog, message: str, *args: Any, **kwargs: Any
-    ) -> None:
+    def exception(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.ERROR, message, *args, exc_info=True, **kwargs)
 
@@ -367,8 +357,13 @@ class ExtensionFormatter(colorlog.TTYColoredFormatter):
 
 
 @singledispatch
-def level_name(loglevel: int) -> str:
+def level_name(loglevel: int | str) -> str:
     """Convert log level to number."""
+    raise NotImplementedError
+
+
+@level_name.register(int)
+def _when_int(loglevel: int) -> str:
     return cast(str, logging.getLevelName(loglevel))
 
 
@@ -378,7 +373,13 @@ def _when_str(loglevel: str) -> str:
 
 
 @singledispatch
-def level_number(loglevel: int) -> int:
+def level_number(loglevel: int | str) -> int:
+    """Convert log level number to name."""
+    raise NotImplementedError
+
+
+@level_number.register(int)
+def _(loglevel: int) -> int:
     """Convert log level number to name."""
     return loglevel
 
@@ -978,7 +979,7 @@ class FileLogProxy(TextIO):
         exc_type: Type[BaseException] = None,
         exc_val: BaseException = None,
         exc_tb: TracebackType = None,
-    ) -> bool | None:
+    ) -> None:
         ...
 
 

@@ -1,11 +1,4 @@
 """Time, date and timezone related utilities."""
-import abc
-import asyncio
-import sys
-import time
-from datetime import timedelta
-from functools import singledispatch
-from types import TracebackType
 from typing import (
     AsyncContextManager,
     Callable,
@@ -15,6 +8,14 @@ from typing import (
     Type,
     Union,
 )
+
+import abc
+import asyncio
+import sys
+import time
+from datetime import timedelta
+from functools import singledispatch
+from types import TracebackType
 
 from .text import pluralize
 
@@ -36,7 +37,7 @@ else:
     TIME_MONOTONIC = time.monotonic
 
 #: Seconds can be expressed as float or :class:`~datetime.timedelta`,
-Seconds = Union[timedelta, float, str]
+Seconds = Union[timedelta, int, float, str]
 
 
 class Unit(NamedTuple):
@@ -203,23 +204,24 @@ class TokenBucket(Bucket):
 
 
 @singledispatch
-def rate(r: float) -> float:
+def rate(r: float | str | int | None) -> float:
     """Convert rate string (`"100/m"`, `"2/h"` or `"0.5/s"`) to seconds."""
-    return r
+    raise NotImplementedError
+
+
+@rate.register(int)
+@rate.register(float)
+def _rate_float(r: int | float) -> float:
+    return float(r)
 
 
 @rate.register(str)
-def _rate_str(r: str) -> float:  # noqa: F811
+def _rate_str(r: str) -> float:
     ops, _, modifier = r.partition("/")
     return RATE_MODIFIER_MAP[modifier or "s"](float(ops)) or 0
 
 
-@rate.register(int)  # noqa: F811
-def _rate_int(r: int) -> float:
-    return float(r)
-
-
-@rate.register(type(None))  # noqa: F811
+@rate.register(type(None))
 def _rate_None(r: None) -> float:
     return 0.0
 
@@ -237,17 +239,23 @@ def rate_limit(
 
 
 @singledispatch
-def want_seconds(s: float) -> float:
+def want_seconds(s: int | float | str | timedelta) -> float:
     """Convert :data:`Seconds` to float."""
-    return s
+    raise NotImplementedError
 
 
-@want_seconds.register(str)  # noqa: F811
+@want_seconds.register(int)
+@want_seconds.register(float)
+def _want_seconds_float(s: int | float) -> float:
+    return float(s)
+
+
+@want_seconds.register(str)
 def _want_seconds_str(s: str) -> float:
     return rate(s)
 
 
-@want_seconds.register(timedelta)  # noqa: F811
+@want_seconds.register(timedelta)
 def _want_seconds_timedelta(s: timedelta) -> float:
     return s.total_seconds()
 
