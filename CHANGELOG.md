@@ -1,5 +1,41 @@
 # Changelong
 
+## 0.4.0 - 2022-07-04
+
+release-by: Lanqing Huang (@lqhuang)
+
+This version is still major in refactoring and tuning. There are serveral breaking changes. Some notable changes including:
+
+1. `on_init` method of `Service` is removed from this version.
+2. `want_seconds` function do not accept `None` as input.
+3. This may most influenced changes: args `loglevel`, `logfile`, `loghandlers` of `Worker`
+   has been renamed to `log_level`, `log_file` and `log_handlers` in order to follow `PEP8` style.
+4. `annotations` function which is conflicting to same value in `__future__`
+   is renamed to `reveal_annotations`.
+
+And after updates of Python version and `mode-ng` itself, `ThreadService` is probably not stable yet for now.
+Please carefully test your codes, if you're using it in production.
+
+### Commits history
+
+- [**breaking**] Update logging time format to timezone aware and format `extra` field in logger
+- Make `want_seconds` raise `TypeError` when input is `None`
+- Reorg cases for unit tests
+- Update CoC guidelines and README
+- [**breaking**] Improve logging module and setup args `loglevel` has been rename to `log_level`
+- Improve implementations of singledispatch function
+- Improve type hints for `signals.py` and reformat for `proxy.py`
+- Fix circular imports and remove lazy importer
+- Improve type hints for worker, services, etc
+- [**breaking**] Remove `on_init` from now
+- Improve notes for lazy loading
+- Reconfig `.bumpversion.cfg`
+- Tune flake8 config and adjust requirements content
+- [**breaking**] Rename `annotations` to `reveal_annotations` due to conflict
+- [**breaking**] Replace `Event` lock to std (asyncio) version. Need more tests in async tasks running in multiple threads.
+- Remove `contexts.py` and improve type hints
+- Adjust docs location about installation
+
 ## 0.3.1 - 2022-06-27
 
 release-by: Lanqing Huang (@lqhuang)

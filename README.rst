@@ -4,7 +4,7 @@ Mode AsyncIO Services
 
 |license| |wheel| |pyversion| |pyimp| |black|
 
-:Version: 0.3.1
+:Version: 0.4.0
 :Web: http://mode-ng.readthedocs.org/
 :Download: https://pypi.org/project/mode-ng
 :Source: https://github.com/lqhuang/mode-ng
@@ -23,7 +23,7 @@ Mode AsyncIO Services
     :alt: Supported Python implementations.
     :target: http://pypi.org/project/mode-ng/
 .. |black| image:: https://img.shields.io/badge/code_style-black-000000.svg?style=flat
-    :alt: Use `black` as code formatter
+    :alt: Use ``black`` as code formatter
     :target: https://github.com/psf/black
 
 Why the fork
@@ -115,10 +115,10 @@ You can install it by doing the following:
 
 .. code:: console
 
-    $ tar xvfz mode-ng-0.3.1.tar.gz
-    $ cd mode-0.3.1
+    $ tar xvfz mode-ng-0.4.0.tar.gz
+    $ cd mode-0.4.0
     $ python setup.py build
-    # python setup.py install
+    $ python setup.py install
 
 The last command must be executed as a privileged user if
 you are not currently using a virtualenv.
@@ -410,7 +410,7 @@ Then to actually use gevent as the event loop you have to
 execute the following in your entrypoint module (usually where you
 start the worker), before any other third party libraries are imported:
 
-.. code:: console
+.. code:: python
 
     #!/usr/bin/env python3
     import mode.loop
@@ -436,7 +436,7 @@ Then to actually use eventlet as the event loop you have to
 execute the following in your entrypoint module (usually where you
 start the worker), before any other third party libraries are imported:
 
-.. code:: console
+.. code:: python
 
     #!/usr/bin/env python3
     import mode.loop
