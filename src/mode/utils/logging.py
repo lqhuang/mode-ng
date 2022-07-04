@@ -24,6 +24,7 @@ import asyncio
 import logging
 import logging.config  # needed when logging_config doesn't start with logging.config
 import os
+import re
 import sys
 import threading
 import time
@@ -31,7 +32,6 @@ import traceback
 from abc import abstractmethod
 from asyncio import AbstractEventLoop, all_tasks, current_task
 from contextlib import ExitStack, contextmanager
-from datetime import datetime, timezone
 from functools import singledispatch, wraps
 from itertools import count
 from logging import Logger
@@ -66,6 +66,33 @@ __all__ = [
 
 DEVLOG: bool = bool(os.environ.get("DEVLOG", ""))
 
+LOG_RECORD_BUILTINS: set[str] = {
+    "asctime",
+    "message",
+    "extra",
+    # from rv.__dict__.keys()
+    "args",
+    "created",
+    "exc_info",
+    "exc_text",
+    "filename",
+    "funcName",
+    "levelname",
+    "levelno",
+    "lineno",
+    "module",
+    "msecs",
+    "msg",
+    "name",
+    "pathname",
+    "process",
+    "processName",
+    "relativeCreated",
+    "stack_info",
+    "thread",
+    "threadName",
+}
+
 DEFAULT_FORMAT: str = """
 [%(asctime)s] [%(process)d:%(thread)d] [%(levelname)s]: %(message)s %(extra)s
 """.strip()
@@ -80,7 +107,7 @@ DEFAULT_COLORS = {
     "DEBUG": "blue",
 }
 
-DEFAULT_DATEFMT = r"%Y-%m-%dT%H:%M:%S"
+# DEFAULT_DATEFMT = r"%Y-%m-%dT%H:%M:%S"
 
 DEFAULT_FORMATTERS = {
     "default": {
@@ -91,7 +118,7 @@ DEFAULT_FORMATTERS = {
         "()": "mode.utils.logging.ExtensionFormatter",
         "format": DEFAULT_COLOR_FORMAT,
         "log_colors": DEFAULT_COLORS,
-        "stream": sys.stdout,
+        "stream": "ext://sys.stdout",
     },
 }
 
@@ -181,10 +208,6 @@ class LogSeverityMixin(Protocol):
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.INFO, message, *args, **kwargs)
 
-    def warn(self, message: str, *args: Any, **kwargs: Any) -> None:
-        kwargs.setdefault("stacklevel", 3)
-        self.log(logging.WARN, message, *args, **kwargs)
-
     def warning(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.WARN, message, *args, **kwargs)
@@ -193,10 +216,6 @@ class LogSeverityMixin(Protocol):
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.ERROR, message, *args, **kwargs)
 
-    def crit(self, message: str, *args: Any, **kwargs: Any) -> None:
-        kwargs.setdefault("stacklevel", 3)
-        self.log(logging.CRITICAL, message, *args, **kwargs)
-
     def critical(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.CRITICAL, message, *args, **kwargs)
@@ -204,6 +223,9 @@ class LogSeverityMixin(Protocol):
     def exception(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
         self.log(logging.ERROR, message, *args, exc_info=True, **kwargs)
+
+    warn = warning  # type: ignore[misc]
+    crit = critical  # type: ignore[misc]
 
 
 class CompositeLogger(LogSeverityMixin):
@@ -291,35 +313,56 @@ def formatter2(fun: FormatterHandler2) -> FormatterHandler2:
 
 def _format_extra(record: logging.LogRecord) -> str:
     return ", ".join(
-        f"{k}={v!r}" for k, v in record.__dict__.get("data", {}).items()
+        f"{k}={v!r}"
+        for k, v in record.__dict__.items()
+        if k not in LOG_RECORD_BUILTINS
     )
 
 
-class DefaultFormatter(logging.Formatter):
-    """Default formatter adds support for extra data."""
+class TZAwareFormatOverwrite:
+    tz_offset = re.compile(r"([+-]\d{2})(\d{2})$")
+
+    converter: Callable[[float | None], time.struct_time]
 
     # converter = time.localtime
-    # default_time_format = "%Y-%m-%d %H:%M:%S"
-    # default_msec_format = "%s,%03d"
-
-    def format(self, record: logging.LogRecord) -> str:
-        record.extra = _format_extra(record)  # type: ignore
-        return super().format(record)
+    default_time_format = r"%Y-%m-%dT%H:%M:%S"
+    default_msec_format = r"%s.%03d"
 
     def formatTime(
         self, record: logging.LogRecord, datefmt: str | None = None
     ) -> str:
+        ct = self.converter(record.created)  # type: ignore
+
         if datefmt:
-            ct = self.converter(record.created)
             s = time.strftime(datefmt, ct)
         else:
-            s = datetime.fromtimestamp(
-                record.created, tz=timezone.utc
-            ).isoformat()
+            s = time.strftime(self.default_time_format, ct)
+            if self.default_msec_format:
+                s = self.default_msec_format % (s, record.msecs)
+
+            m = self.tz_offset.match(time.strftime("%z"))
+            has_offset = False
+            if m and time.timezone:
+                hrs, mins = m.groups()
+                if int(hrs) or int(mins):
+                    has_offset = True
+                if not has_offset:
+                    s += "Z"
+                else:
+                    s += f"{hrs}:{mins}"
+
         return s
 
 
-class ExtensionFormatter(colorlog.ColoredFormatter):
+class DefaultFormatter(TZAwareFormatOverwrite, logging.Formatter):  # type: ignore[misc]
+    """Default formatter adds support for extra data."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        record.extra = _format_extra(record)  # type: ignore[attr-defined]
+        return super().format(record)
+
+
+class ExtensionFormatter(TZAwareFormatOverwrite, colorlog.ColoredFormatter):  # type: ignore[misc]
     """Formatter that can register callbacks to format args.
 
     Extends :pypi:`colorlog`.
@@ -332,18 +375,6 @@ class ExtensionFormatter(colorlog.ColoredFormatter):
         self._format_args(record)
         record.extra = _format_extra(record)  # type: ignore[attr-defined]
         return super().format(record)
-
-    def formatTime(
-        self, record: logging.LogRecord, datefmt: str | None = None
-    ) -> str:
-        if datefmt:
-            ct = self.converter(record.created)
-            s = time.strftime(datefmt, ct)
-        else:
-            s = datetime.fromtimestamp(
-                record.created, tz=timezone.utc
-            ).isoformat()
-        return s
 
     def _format_args(self, record: logging.LogRecord) -> None:
         format_arg = self.format_arg
@@ -383,7 +414,7 @@ class ExtensionFormatter(colorlog.ColoredFormatter):
 @singledispatch
 def level_name(log_level: int | str) -> str:
     """Convert log level to number."""
-    raise NotImplementedError
+    raise TypeError(f"Unexpected type {type(log_level)}")
 
 
 @level_name.register(int)
@@ -399,7 +430,7 @@ def _when_str(log_level: str) -> str:
 @singledispatch
 def level_number(log_level: int | str) -> int:
     """Convert log level number to name."""
-    raise NotImplementedError
+    raise TypeError(f"Unexpected type {type(log_level)}")
 
 
 @level_number.register(int)
@@ -417,7 +448,7 @@ def setup_logging(
     *,
     log_level: Severity | None = None,
     log_file: os.PathLike | str | IO | None = None,
-    log_handlers: list[logging.Handler] | None = None,
+    log_handlers: Iterable[logging.Handler] | None = None,
     logging_config: dict | None = None,
 ) -> int:
     """Configure logging subsystem."""
@@ -436,7 +467,7 @@ def setup_logging(
         stream = None
         filename = log_file
     else:
-        raise TypeError("")
+        raise TypeError(f"Unexpected type {type(log_file)}")
 
     _log_level: int = (
         logging.INFO if log_level is None else level_number(log_level)
@@ -470,7 +501,7 @@ def _setup_logging(
                 "default_console": {
                     "level": level,
                     "class": "colorlog.StreamHandler",
-                    "formatter": "colored",
+                    "formatter": "colored" if LOG_ISATTY else "default",
                 },
             }
         )
@@ -514,7 +545,9 @@ def _setup_logging(
 
     logging.config.dictConfig(final_config)
     if log_handlers is not None:
-        logging.root.handlers.extend(log_handlers)
+        for handler in log_handlers:
+            # more thread-safe than extend directly
+            logging.root.addHandler(handler)
 
 
 class Logwrapped(object):

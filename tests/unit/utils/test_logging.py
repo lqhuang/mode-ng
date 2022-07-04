@@ -1,18 +1,20 @@
-from typing import IO
+from typing import IO, Type
 
 import asyncio
 import io
 import logging
 import sys
+import time
 from copy import deepcopy
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone, timedelta
 
 import pytest
 
 from mode.utils.logging import (
+    LOG_RECORD_BUILTINS,
     CompositeLogger,
     DefaultFormatter,
+    ExtensionFormatter,
     FileLogProxy,
     LogMessage,
     Logwrapped,
@@ -39,6 +41,13 @@ def log_called_with(logger, *args, stacklevel, **kwargs):
 
 def formatter_called_with(formatter, *args, stacklevel, **kwargs):
     formatter.assert_called_once_with(*args, stacklevel=stacklevel, **kwargs)
+
+
+def test_log_record_builtins():
+    rv = logging.makeLogRecord({})
+    assert LOG_RECORD_BUILTINS - {"message", "asctime", "extra"} == set(
+        rv.__dict__.keys()
+    )
 
 
 class test_CompositeLogger:
@@ -129,26 +138,39 @@ def test_formatter():
         _formatter_registry.remove(f)
 
 
-# def test_default_datefmt():
+@pytest.mark.parametrize("MyFormatter", (DefaultFormatter, ExtensionFormatter))
+class test_Formatter:
+    def test_format(self, MyFormatter: Type[logging.Formatter]):
+        extra = {"moo": 30, "baz": 1111, "foo": "hello"}
+        record = logging.getLogger("__test_Formatter__").makeRecord(
+            "name",
+            logging.INFO,
+            "path",
+            303,
+            r"msg %s",
+            (1,),
+            None,
+            extra=extra,
+        )
+        _ = MyFormatter().format(record)
+        keys = set(s.split("=")[0] for s in record.extra.split(", "))
+        assert keys == set(extra.keys())
 
-#     d = datetime.now(tz=timezone.utc)
-
-#     datestr = time.strftime(DEFAULT_DATEFMT, t)
-
-#     assert datestr == d.isoformat()
-
-
-def test_DefaultFormatter():
-    record = logging.LogRecord(
-        "name",
-        logging.INFO,
-        "path",
-        303,
-        "msg",
-        {"foo": 1, "extra": {"data": {"moo": 30, "baz": [1, 2]}}},
-        exc_info=None,
-    )
-    DefaultFormatter().format(record)
+    def test_formatTime(self, MyFormatter):
+        record = logging.LogRecord(
+            "name",
+            logging.INFO,
+            "path",
+            303,
+            "msg",
+            {"foo": 1, "extra": {"data": {"moo": 30, "baz": [1, 2]}}},
+            exc_info=None,
+        )
+        s = MyFormatter().formatTime(record)
+        iso = datetime.fromtimestamp(
+            record.created, tz=timezone(timedelta(seconds=-time.timezone))
+        ).isoformat(timespec="milliseconds")
+        assert s == iso
 
 
 @pytest.mark.parametrize(
@@ -168,6 +190,15 @@ def test_level_number(input, expected):
 
 
 @pytest.mark.parametrize(
+    "input",
+    (None, 10.0, 0.0),
+)
+def test_level_number__type(input):
+    with pytest.raises(TypeError):
+        level_number(input)
+
+
+@pytest.mark.parametrize(
     "input,expected",
     [
         (logging.DEBUG, "DEBUG"),
@@ -181,6 +212,15 @@ def test_level_number(input, expected):
 )
 def test_level_name(input, expected):
     assert level_name(input) == expected
+
+
+@pytest.mark.parametrize(
+    "input",
+    (None, 10.0, 0.0),
+)
+def test_level_name__type(input):
+    with pytest.raises(TypeError):
+        level_name(input)
 
 
 class test_setup_logging:
@@ -276,9 +316,7 @@ class test__setup_logging:
             log_handlers=[mock_handler],
         )
         self.logging.config.dictConfig.assert_called_once_with(ANY)
-        self.logging.root.handlers.extend.assert_called_once_with(
-            [mock_handler]
-        )
+        self.logging.root.addHandler.assert_called_once_with(mock_handler)
 
     def test_setup_logging_helper_with_merge_config(self):
         _setup_logging(

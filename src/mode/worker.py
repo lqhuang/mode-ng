@@ -111,7 +111,7 @@ class Worker(Service):
         quiet: bool = False,
         log_level: Severity = _logging.INFO,
         log_file: str | os.PathLike | IO | None = None,
-        log_handlers: list[Handler] | None = None,
+        log_handlers: Iterable[Handler] | None = None,
         redirect_stdouts: bool = True,
         redirect_stdouts_level: Severity = _logging.WARN,
         stdout: IO | None = sys.stdout,
