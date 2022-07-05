@@ -1,8 +1,8 @@
-PROJ ?= mode
+PROJ ?= src/mode-ng
 PGPIDENT ?= "Lanqing Huang"
 PYTHON ?= python
 PYTEST ?= pytest
-PIP ?= pip
+PIP ?= ${PYTHON} -m pip
 GIT ?= git
 TOX ?= tox
 ICONV ?= iconv
@@ -17,9 +17,9 @@ SPHINX_DIR ?= docs/
 SPHINX_BUILDDIR ?= "${SPHINX_DIR}/_build"
 README ?= README.rst
 README_SRC ?= "docs/templates/readme.txt"
-CONTRIBUTING ?= CONTRIBUTING.rst
+CONTRIBUTING ?= CONTRIBUTING.md
 CONTRIBUTING_SRC ?= "docs/contributing.rst"
-COC ?= CODE_OF_CONDUCT.rst
+COC ?= CODE_OF_CONDUCT.md
 COC_SRC ?= "docs/includes/code-of-conduct.txt"
 SPHINX_HTMLDIR="${SPHINX_BUILDDIR}/html"
 DOCUMENTATION=Documentation
@@ -46,7 +46,7 @@ help:
 	@echo "clean-dist --------- - Clean all distribution build artifacts."
 	@echo "  clean-git-force    - Remove all uncomitted files."
 	@echo "  clean ------------ - Non-destructive clean"
-	@echo "    clean-pyc        - Remove .pyc/__pycache__ files"
+	@echo "    clean-pyc        - Remove .pyc and __pycache__ files"
 	@echo "    clean-docs       - Remove documentation build artifacts."
 	@echo "    clean-build      - Remove setup artifacts."
 	@echo "bump                 - Bump patch version number."
@@ -54,13 +54,126 @@ help:
 	@echo "bump-major           - Bump major version number."
 	@echo "release              - Make PyPI release."
 
+
+# ------------------------ Reset and Cleanup ---------------------------------
 clean: clean-docs clean-pyc clean-build
 
-clean-dist: clean clean-git-force
+clean-all: clean
 
+clean-dist: clean clean-git
+
+clean-pyc:
+	-find . -type f -a \( -name "*.pyc" -o -name "*$$py.class" \) | xargs rm
+	-find . -type d -name "__pycache__" | xargs rm -r
+
+clean-git:
+	${GIT} clean -xdn
+
+clean-git-force:
+	${GIT} clean -xdf
+
+# ------------------ Lint, Test and Coverage ---------------------------------
+lint: flakecheck typecheck readmecheck apicheck
+
+apicheck:
+	(cd "${SPHINX_DIR}"; $(MAKE) apicheck)
+
+flakecheck:
+	${FLAKE8} ${PROJ} ${TESTDIR} examples/
+
+pep257check:
+	${PYDOCSTYLE} ${PROJ}
+
+flakes: flakecheck pep257check
+
+typecheck:
+	${MYPY} --pretty -p ${PROJ}
+
+test:
+	${PYTEST} .
+
+test-all: clean-pyc
+	${TOX}
+
+cov:
+	$(PYTEST) -x --cov="${PROJ}" --cov-report=html
+
+distcheck: lint test
+
+dist: readme contrib clean-dist build
+
+# ------------------------- Dev setup ----------------------------------------
+. PHONY: venv
+venv:
+	${PYTHON} -m venv .venv --clear
+
+. PHONY: deps-default
+deps-default:
+	${PIP} install -U -r requirements/default.txt
+
+. PHONY: deps-dev
+deps-dev:
+	${PIP} install -U -r requirements/dev.txt
+
+. PHONY: deps-docs
+deps-docs:
+	${PIP} install -U -r requirements/docs.txt
+
+. PHONY: deps-test
+deps-test:
+	${PIP} install -U -r requirements/test.txt
+
+. PHONY: deps-typecheck
+deps-typecheck:
+	${PIP} install -U -r requirements/typecheck.txt
+
+. PHONY: deps-extras
+deps-extras:
+	${PIP} install -U -r requirements/extras/eventlet.txt
+	${PIP} install -U -r requirements/extras/uvloop.txt
+
+. PHONY: develop
+develop: deps-default deps-dist deps-docs deps-test deps-typecheck deps-extras
+	${PIP} install -e .
+
+.PHONY: requirements
+requirements:
+	${PIP} install --upgrade pip
+	for f in `ls requirements/` ; do ${PIP} install -r requirements/$$f ; done
+
+.PHONY: clean-requirements
+clean-requirements:
+	pip freeze | xargs pip uninstall -y
+	$(MAKE) requirements
+
+# ---------------------- Release distribution --------------------------------
+bump:
+	${BUMPVERSION} patch
+
+bump-minor:
+	${BUMPVERSION} minor
+
+bump-major:
+	${BUMPVERSION} major
+
+do-build:
+	${PYTHON} -m build -s -w
+
+clean-build:
+	rm -rf build/ .eggs/ *.egg-info/ .tox/ .coverage/ cover/
+
+.PHONY: build
+build: clean-build do-build
+
+.PHONY: release
+release:
+	${PYTHON} -m twine check dist/*
+	${PYTHON} -m twine upload --skip-existing dist/*
+
+# ------------------------------ Docs ----------------------------------------
 . PHONY: Documentation
 Documentation:
-	$(PIP) install -r requirements/docs.txt
+	${PIP} install -r requirements/docs.txt
 	(cd "$(SPHINX_DIR)"; $(MAKE) html)
 	mv "$(SPHINX_HTMLDIR)" $(DOCUMENTATION)
 
@@ -69,22 +182,6 @@ docs: Documentation
 
 clean-docs:
 	-rm -rf "$(SPHINX_BUILDDIR)"
-
-lint: flakecheck apicheck readmecheck
-
-apicheck:
-	(cd "$(SPHINX_DIR)"; $(MAKE) apicheck)
-
-flakecheck:
-	$(FLAKE8) "$(PROJ)" "$(TESTDIR)" examples/
-
-pep257check:
-	$(PYDOCSTYLE) "$(PROJ)"
-
-flakediag:
-	-$(MAKE) flakecheck
-
-flakes: flakediag
 
 clean-readme:
 	-rm -f $(README)
@@ -112,100 +209,3 @@ $(COC):
 	$(SPHINX2RST) "$(COC_SRC)" > $@
 
 coc: clean-coc $(COC)
-
-clean-pyc:
-	-find . -type f -a \( -name "*.pyc" -o -name "*$$py.class" \) | xargs rm
-	-find . -type d -name "__pycache__" | xargs rm -r
-
-removepyc: clean-pyc
-
-clean-git:
-	$(GIT) clean -xdn
-
-clean-git-force:
-	$(GIT) clean -xdf
-
-test-all: clean-pyc
-	$(TOX)
-
-test:
-	$(PYTEST) .
-
-cov:
-	$(PYTEST) -x --cov="$(PROJ)" --cov-report=html
-
-distcheck: lint test clean
-
-dist: readme contrib clean-dist build
-
-typecheck:
-	$(MYPY) --pretty -p $(PROJ)
-
-
-# ------------------------- Dev setup ----------------------------------------
-. PHONY: venv
-venv:
-	${PYTHON} -m venv .venv --clear
-
-. PHONY: deps-default
-deps-default:
-	$(PIP) install -U -r requirements/default.txt
-
-. PHONY: deps-dev
-deps-dev:
-	$(PIP) install -U -r requirements/dev.txt
-
-. PHONY: deps-docs
-deps-docs:
-	$(PIP) install -U -r requirements/docs.txt
-
-. PHONY: deps-test
-deps-test:
-	$(PIP) install -U -r requirements/test.txt
-
-. PHONY: deps-typecheck
-deps-typecheck:
-	$(PIP) install -U -r requirements/typecheck.txt
-
-. PHONY: deps-extras
-deps-extras:
-	$(PIP) install -U -r requirements/extras/eventlet.txt
-	$(PIP) install -U -r requirements/extras/uvloop.txt
-
-. PHONY: develop
-develop: deps-default deps-dist deps-docs deps-test deps-typecheck deps-extras
-	${PYTHON} -m pip install -e .
-
-.PHONY: requirements
-requirements:
-	$(PIP) install --upgrade pip
-	for f in `ls requirements/` ; do $(PIP) install -r requirements/$$f ; done
-
-.PHONY: clean-requirements
-clean-requirements:
-	pip freeze | xargs pip uninstall -y
-	$(MAKE) requirements
-
-
-# ---------------------- Release distribution --------------------------------
-bump:
-	${BUMPVERSION} patch
-
-bump-minor:
-	${BUMPVERSION} minor
-
-bump-major:
-	${BUMPVERSION} major
-
-do-build:
-	${PYTHON} -m build -s -w
-
-clean-build:
-	rm -rf build/ .eggs/ *.egg-info/ .tox/ .coverage/ cover/
-
-.PHONY: build
-build: clean-build do-build
-
-release:
-	${PYTHON} -m twine check dist/*
-	${PYTHON} -m twine upload --skip-existing dist/*
