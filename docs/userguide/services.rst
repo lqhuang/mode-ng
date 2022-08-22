@@ -87,7 +87,7 @@ Child services can be added in three ways,
 
 1) Using ``add_dependency()`` in ``__post_init__``:
 
-    .. sourcecode:: python
+    .. code-block:: python
 
         class MyService(Service):
 
@@ -96,7 +96,7 @@ Child services can be added in three ways,
 
 2) Using ``add_dependency()`` in ``on_start``:
 
-    .. sourcecode:: python
+    .. code-block:: python
 
         class MyService(Service):
 
@@ -108,7 +108,7 @@ Child services can be added in three ways,
     This is is a method that if customized should return an iterable
     of service instances:
 
-    .. sourcecode:: python
+    .. code-block:: python
 
         from typing import Iterable
         from mode import Service, ServiceT
@@ -212,7 +212,7 @@ logs.
 
 The ``self.log`` delegate contains shortcuts for logging:
 
-.. sourcecode:: python
+.. code-block:: python
 
     # examples/logging.py
 
@@ -236,7 +236,7 @@ The logs will be emitted by a logger with the same name as the module the
 Service class is defined in.  It's similar to this setup, that you can do
 if you want to manually define the logger used by the service:
 
-.. sourcecode:: python
+.. code-block:: python
 
     # examples/manual_service_logger.py
 

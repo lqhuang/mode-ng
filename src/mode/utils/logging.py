@@ -237,7 +237,7 @@ class CompositeLogger(LogSeverityMixin):
 
     Service uses this to add logging methods:
 
-    .. sourcecode:: python
+    .. code-block:: python
 
         class Service(ServiceT):
 
@@ -256,7 +256,7 @@ class CompositeLogger(LogSeverityMixin):
 
     This means those defining a service may also use it to log:
 
-    .. sourcecode:: pycon
+    .. code-block:: pycon
 
         >>> service.log.info('Something happened')
 
@@ -488,7 +488,7 @@ def _setup_logging(
     level: Severity = logging.INFO,
     stream: IO | None = None,
     filename: str | os.PathLike | None = None,
-    log_handlers: list[logging.Handler] | None = None,
+    log_handlers: Iterable[logging.Handler] | None = None,
     logging_config: dict | None = None,
 ) -> None:
     handlers = {}
@@ -546,7 +546,7 @@ def _setup_logging(
     logging.config.dictConfig(final_config)
     if log_handlers is not None:
         for handler in log_handlers:
-            # more thread-safe than extend directly
+            # more thread-safe than extend handlers directly
             logging.root.addHandler(handler)
 
 
@@ -701,7 +701,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
 
     Use the flight recorder to save the logs and only log when it times out:
 
-    .. sourcecode:: python
+    .. code-block:: python
 
         logger = mode.get_logger(__name__)
 
@@ -723,7 +723,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
     takes more than ten seconds to complete, we will see these messages
     in the log:
 
-    .. sourcecode:: text
+    .. code-block:: text
 
         [2018-04-19 09:43:55,877: WARNING]: Warning: Task timed out!
         [2018-04-19 09:43:55,878: WARNING]:

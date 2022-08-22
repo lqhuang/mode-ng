@@ -226,7 +226,7 @@ class ServiceCallbacks:
 
     When calling ``await service.start()`` this happens:
 
-    .. sourcecode:: text
+    .. code-block:: text
 
         +--------------------+
         | INIT (not started) |
@@ -250,7 +250,7 @@ class ServiceCallbacks:
 
     When stopping and ``wait_for_shutdown`` is unset, this happens:
 
-    .. sourcecode:: text
+    .. code-block:: text
 
         .-----------------------.
         / await service.stop()  |
@@ -267,7 +267,7 @@ class ServiceCallbacks:
     When stopping and ``wait_for_shutdown`` is set, the stop operation
     will wait for something to set the shutdown flag ``self.set_shutdown()``:
 
-    .. sourcecode:: text
+    .. code-block:: text
 
         .-----------------------.
         / await service.stop()  |
@@ -288,7 +288,7 @@ class ServiceCallbacks:
     When restarting the order is as follows (assuming
     ``wait_for_shutdown`` unset):
 
-    .. sourcecode:: text
+    .. code-block:: text
 
         .-------------------------.
         / await service.restart() |

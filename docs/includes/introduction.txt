@@ -66,7 +66,7 @@ Worker
 
     Then execute your program to start the worker:
 
-    .. sourcecode:: console
+    .. code-block:: console
 
         $ python examples/tutorial.py
         [2018-03-27 15:47:12,159: INFO]: [^Worker]: Starting...
@@ -81,7 +81,7 @@ Worker
 
     To stop it hit :kbd:`Control-c`:
 
-    .. sourcecode:: console
+    .. code-block:: console
 
         [2018-03-27 15:55:08,084: INFO]: [^Worker]: Stopping on signal received...
         [2018-03-27 15:55:08,084: INFO]: [^Worker]: Stopping...
@@ -113,7 +113,7 @@ Beacons
     This requires you to have the ``pydot`` library and GraphViz
     installed:
 
-    .. sourcecode:: console
+    .. code-block:: console
 
         $ pip install pydot
 

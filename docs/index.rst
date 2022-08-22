@@ -1,28 +1,25 @@
-=======================================================================
+=========================
  Mode - AsyncIO Services
-=======================================================================
+=========================
 
 Contents
 ========
-
-.. toctree::
-    :maxdepth: 1
-
-    copyright
 
 .. toctree::
     :maxdepth: 2
 
     introduction
     userguide/index
+    reference/index
 
 .. toctree::
     :maxdepth: 1
 
     faq
-    reference/index
     changelog
     glossary
+    copyright
+    code-of-conduct
 
 Indices and tables
 ==================

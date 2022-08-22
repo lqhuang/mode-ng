@@ -12,7 +12,7 @@ these can be combined to create proxies.
 For example to create a proxy to a class that both implements
 the mutable mapping interface and is an async context manager:
 
-.. sourcecode:: python
+.. code-block:: python
 
 
     def create_real():
@@ -31,7 +31,7 @@ By default the callable passed to :class:`Proxy` will be evaluated
 every time it is needed, so in the example above a new
 X will be created every time you access the underlying object:
 
-.. sourcecode:: pycon
+.. code-block:: pycon
 
     >>> x['foo'] = 'value'
     CREATING X
@@ -54,7 +54,7 @@ X will be created every time you access the underlying object:
 If you want the creation of the object to be lazy (created
 when first needed), you can pass the `cache=True` argument to :class:`Proxy`:
 
-.. sourcecode:: pycon
+.. code-block:: pycon
 
     >>> x = XProxy(create_real, cache=True)
 

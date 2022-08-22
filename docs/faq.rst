@@ -1,7 +1,5 @@
-.. _faq:
+======
+ FAQ
+======
 
-==================================
- FAQ: Frequently Asked Questions
-==================================
-
-.. include:: includes/faq.txt
+.. include:: includes/faq.rst

@@ -65,7 +65,7 @@ class stampede:
     Examples:
         Here's an example coroutine method connecting a network client:
 
-        .. sourcecode:: python
+        .. code-block:: python
 
             class Client:
 

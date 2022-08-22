@@ -34,7 +34,7 @@ MOCK_CALL_COUNT = count(0)
 class IN:
     """Class used to check for multiple alternatives.
 
-    .. sourcecode:: python
+    .. code-block:: python
 
         assert foo.value IN(a, b)
 

@@ -293,7 +293,7 @@ def reveal_annotations(
             invalid type is encountered.
 
     Examples:
-        .. sourcecode:: text
+        .. code-block:: text
 
             >>> class Point:
             ...    x: float

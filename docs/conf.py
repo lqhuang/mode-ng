@@ -1,60 +1,65 @@
-# -*- coding: utf-8 -*-
-import sys
-from contextlib import suppress
+# Configuration file for the Sphinx documentation builder.
+#
+# For the full list of built-in configuration values, see the documentation:
+# https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-from sphinx_celery import conf
+# -- Project information -----------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-sys.path.append(".")
+project = "mode-ng"
+copyright = "2022, Lanqing Huang"  # noqa: A001
+author = "Lanqing Huang (@lqhuang)"
+version = release = "0.4.0"
+canonical_url = "https://lqhuang.github.io/mode-ng"
+github_project = "lqhuang/mode-ng"
 
-extensions = []
+# -- General configuration ---------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-globals().update(
-    conf.build_config(
-        "mode",
-        __file__,
-        project="Mode",
-        # version_dev='2.0',
-        # version_stable='1.4',
-        canonical_url="http://mode-ng.readthedocs.io",
-        webdomain="",
-        github_project="lqhuang/mode-ng",
-        copyright="2017-2020",
-        html_logo="images/logo.png",
-        html_favicon="images/favicon.ico",
-        html_prepend_sidebars=[],
-        include_intersphinx={"python", "sphinx"},
-        extra_extensions=[
-            "sphinx.ext.napoleon",
-            "sphinx_autodoc_annotation",
-            "alabaster",
-        ],
-        extra_intersphinx_mapping={},
-        # django_settings='testproj.settings',
-        # from pathlib import Path
-        # path_additions=[Path.cwd().parent / 'testproj']
-        apicheck_ignore_modules=[
-            "mode.loop.eventlet",
-            "mode.loop.gevent",
-            "mode.loop.uvloop",
-            "mode.loop._gevent_loop",
-            "mode.utils",
-            "mode.utils.graphs.formatter",
-            "mode.utils.graphs.graph",
-            "mode.utils.types",
-        ],
-    )
-)
+extensions = [
+    "myst_parser",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "sphinx.ext.coverage",
+    "sphinx_design",
+    "sphinx_copybutton",
+]
+
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+language = "en"
+
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".txt": "markdown",
+    ".md": "markdown",
+}
+
+# -- Options for MyST  -------------------------------------------------------
+
+# myst_enable_extensions = []
+
+# -- Options for HTML output -------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "alabaster"
+html_static_path = ["_static"]
+html_logo = "images/logo.png"
+html_favicon = "images/favicon.ico"
 html_sidebars = {}
-templates_path = ["_templates"]
 
-autodoc_member_order = "bysource"
+# -- Options for intersphinx extension ---------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html#configuration
 
-pygments_style = "sphinx"
+intersphinx_mapping = {
+    # "python": ("https://docs.python.org/3", None),
+}
 
-# This option is deprecated and raises an error.
-with suppress(NameError):
-    del html_use_smartypants  # noqa
+# -- Options for todo extension ----------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/todo.html#configuration
 
-extensions.remove("sphinx.ext.viewcode")
+todo_include_todos = True

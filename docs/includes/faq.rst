@@ -1,5 +1,5 @@
-FAQ
-===
+Frequently Asked Questions
+==========================
 
 Can I use Mode with Django/Flask/etc.?
 --------------------------------------
@@ -14,7 +14,7 @@ This works with any blocking Python library that can work with gevent.
 Using gevent requires you to install the ``aiogevent`` module,
 and you can install this as a bundle with Mode:
 
-.. sourcecode:: console
+.. code-block:: console
 
     $ pip install -U mode[gevent]
 
@@ -39,7 +39,7 @@ This works with any blocking Python library that can work with eventlet.
 Using eventlet requires you to install the ``aioeventlet`` module,
 and you can install this as a bundle with Mode:
 
-.. sourcecode:: console
+.. code-block:: console
 
     $ pip install -U mode[eventlet]
 
@@ -114,7 +114,7 @@ At Shutdown I get lots of warnings, what is this about?
 
 If you get warnings such as this at shutdown:
 
-.. sourcecode:: text
+.. code-block:: text
 
     Task was destroyed but it is pending!
     task: <Task pending coro=<Service._execute_task() running at /opt/devel/mode/mode/services.py:643> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x1100a7468>()]>>

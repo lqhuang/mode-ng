@@ -1,6 +1,5 @@
-six
-sphinx>=2.2,<3.0
-sphinx_celery>=1.4.8
-sphinx-autodoc-annotation
+sphinx
 alabaster
-pipdeptree
+myst-parser
+sphinx-design
+sphinx-copybutton
