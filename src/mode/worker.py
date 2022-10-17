@@ -277,6 +277,14 @@ class Worker(Service):
         maybe_cancel(self._starting_fut)
 
     def execute_from_commandline(self) -> NoReturn:
+        self._start_and_join(shutdown_loop=True)
+        # for mypy NoReturn
+        raise SystemExit(EX_OK)
+
+    def start_and_join(self) -> None:
+        self._start_and_join(shutdown_loop=False)
+
+    def _start_and_join(self, *, shutdown_loop: bool = True) -> None:
         self._starting_fut = None
         with exiting(file=self.stderr):
             try:
@@ -295,21 +303,23 @@ class Worker(Service):
             finally:
                 maybe_cancel(self._starting_fut)
                 self.on_worker_shutdown()
-                self.stop_and_shutdown()
-        # for mypy NoReturn
-        raise SystemExit(EX_OK)
+                self.stop_and_shutdown(shutdown_loop=shutdown_loop)
 
     def on_worker_shutdown(self) -> None:
         ...
 
-    def stop_and_shutdown(self) -> None:
+    def stop_and_shutdown(self, shutdown_loop: bool = True) -> None:
         if self._signal_stop_future and not self._signal_stop_future.done():
             self.loop.run_until_complete(self._signal_stop_future)
         elif not self._stopped.is_set():
             self.loop.run_until_complete(self.stop())
-        self._shutdown_loop()
 
-    def _shutdown_loop(self) -> None:
+        self._join()
+
+        if shutdown_loop:
+            self._shutdown_loop()
+
+    def _join(self) -> None:
         # Gather futures created by us.
         self.log.info("Gathering service tasks...")
         with suppress(asyncio.CancelledError):
@@ -317,6 +327,8 @@ class Worker(Service):
         # Gather absolutely all asyncio futures.
         self.log.info("Gathering all futures...")
         self._gather_all()
+
+    def _shutdown_loop(self) -> None:
         try:
             # Wait until loop is fully stopped.
             while self.loop.is_running():

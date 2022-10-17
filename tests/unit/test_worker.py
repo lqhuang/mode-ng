@@ -151,24 +151,6 @@ class test_Worker:
         with patch("mode.utils.logging.setup_logging"):
             worker._setup_logging()
 
-    def test_stop_and_shutdown(self, worker):
-        worker.loop = Mock()
-        worker.stop = Mock()
-        worker._signal_stop_future = None
-        worker._stopped.set()
-        worker._shutdown_loop = Mock()
-
-        worker.stop_and_shutdown()
-        worker._shutdown_loop.assert_called_once_with()
-
-        worker._signal_stop_future = Mock()
-        worker._signal_stop_future.done.return_value = False
-        worker.stop_and_shutdown()
-
-        worker.loop.run_until_complete.assert_called_with(
-            worker._signal_stop_future
-        )
-
     @pytest.mark.asyncio
     async def test_maybe_start_blockdetection(self, worker):
         worker._blocking_detector = Mock(maybe_start=AsyncMock())
@@ -262,7 +244,9 @@ class test_Worker:
             ensure_future.assert_called_once_with(
                 worker.start.return_value, loop=worker.loop
             )
-            worker.stop_and_shutdown.assert_called_once_with()
+            worker.stop_and_shutdown.assert_called_once_with(
+                shutdown_loop=True
+            )
 
     def test_execute_from_commandline__MemoryError(self, worker):
         with self.patch_execute(worker):
@@ -296,9 +280,30 @@ class test_Worker:
     def test_on_worker_shutdown(self, worker):
         worker.on_worker_shutdown()
 
+    def test_stop_and_shutdown(self, worker):
+        worker.loop = Mock()
+        worker.stop = Mock()
+        worker._join = Mock()
+        worker._shutdown_loop = Mock()
+        worker._signal_stop_future = None
+        worker._stopped.set()
+
+        worker.stop_and_shutdown()
+        worker._shutdown_loop.assert_called_once_with()
+
+        worker._signal_stop_future = Mock()
+
+        worker._signal_stop_future.done.return_value = False
+        worker.stop_and_shutdown()
+
+        worker.loop.run_until_complete.assert_called_with(
+            worker._signal_stop_future
+        )
+
     def test_stop_and_shutdown__stopping_worker(self, worker):
         worker.loop = Mock()
         worker.stop = Mock()
+        worker._join = Mock()
         worker._shutdown_loop = Mock()
         worker._signal_stop_future = None
         worker._stopped.clear()
