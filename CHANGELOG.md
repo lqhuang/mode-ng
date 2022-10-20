@@ -1,5 +1,16 @@
 # Changelong
 
+## 0.5.0 - 2022-10-20
+
+release-by: Lanqing Huang (@lqhuang)
+
+From `mode-ng-0.5.0`, `Worker` is able to be embeded in other codes without terminating all while worker shutdown.
+
+- [**breaking**] Seperate `start` and `join` into two functions
+- [**breaking**] Enable `start_and_join` without shutdown loop
+- Rebuild docs gen scripts
+- Tune makefile
+
 ## 0.4.0 - 2022-07-04
 
 release-by: Lanqing Huang (@lqhuang)

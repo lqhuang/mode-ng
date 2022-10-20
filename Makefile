@@ -130,6 +130,10 @@ deps-test:
 deps-typecheck:
 	${PIP} install -U -r requirements/typecheck.txt
 
+.PHONY: deps-release
+deps-release:
+	${PIP} install -U -r requirements/release.txt
+
 .PHONY: deps-extras
 deps-extras:
 	${PIP} install -U -r requirements/extras/eventlet.txt
@@ -172,6 +176,10 @@ build: clean-build do-build
 release:
 	${PYTHON} -m twine check dist/*
 	${PYTHON} -m twine upload --skip-existing dist/*
+
+.PHONY: cliff
+cliff:
+	git cliff -u
 
 # ------------------------------ Docs ----------------------------------------
 .PHONY: Documentation
