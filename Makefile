@@ -154,7 +154,7 @@ clean-requirements:
 	$(MAKE) requirements
 
 # ---------------------- Release distribution --------------------------------
-bump:
+bump-patch:
 	${BUMPVERSION} patch
 
 bump-minor:

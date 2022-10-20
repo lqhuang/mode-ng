@@ -1,5 +1,9 @@
 # Changelong
 
+## 0.5.1 - 2022-10-20
+
+- Fix scope of `exiting` context manager
+
 ## 0.5.0 - 2022-10-20
 
 release-by: Lanqing Huang (@lqhuang)
