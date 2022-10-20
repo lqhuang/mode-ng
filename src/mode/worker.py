@@ -278,8 +278,9 @@ class Worker(Service):
 
     def execute_from_commandline(self) -> NoReturn:
         self.start_system()
-        self.loop.run_until_complete(self.join())
-        self._shutdown_loop()
+        with exiting(file=self.stderr):
+            self.loop.run_until_complete(self.join())
+            self._shutdown_loop()
         # for mypy NoReturn
         raise SystemExit(EX_OK)
 
@@ -294,20 +295,19 @@ class Worker(Service):
         if self._starting_fut is None:
             raise RuntimeError("Please start system before join it.")
 
-        with exiting(file=self.stderr):
-            try:
-                await self._starting_fut
-            except asyncio.CancelledError:
-                pass
-            except MemoryError:
-                raise
-            except Exception as exc:
-                self.log.exception("Error: %r", exc)
-                raise
-            finally:
-                maybe_cancel(self._starting_fut)
-                await self.on_worker_shutdown()
-                await self.stop_and_shutdown()
+        try:
+            await self._starting_fut
+        except asyncio.CancelledError:
+            pass
+        except MemoryError:
+            raise
+        except Exception as exc:
+            self.log.exception("Error: %r", exc)
+            raise
+        finally:
+            maybe_cancel(self._starting_fut)
+            await self.on_worker_shutdown()
+            await self.stop_and_shutdown()
 
     async def on_worker_shutdown(self) -> None:
         ...
