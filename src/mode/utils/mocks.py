@@ -8,7 +8,16 @@ from asyncio import coroutine
 from contextlib import contextmanager
 from itertools import count
 from types import ModuleType
-from typing import Any, Callable, ContextManager, Iterator, Optional, Type, Union, cast
+from typing import (
+    Any,
+    Callable,
+    ContextManager,
+    Iterator,
+    Optional,
+    Type,
+    Union,
+    cast,
+)
 
 # from unittest.mock import AsyncMock  # TODO: need to update test cases
 

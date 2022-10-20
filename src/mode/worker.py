@@ -111,7 +111,7 @@ class Worker(Service):
         quiet: bool = False,
         log_level: Severity = _logging.INFO,
         log_file: str | os.PathLike | IO | None = None,
-        log_handlers: Iterable[Handler] | None = None,
+        log_handlers: list[Handler] | None = None,
         redirect_stdouts: bool = True,
         redirect_stdouts_level: Severity = _logging.WARN,
         stdout: IO | None = sys.stdout,
@@ -277,22 +277,26 @@ class Worker(Service):
         maybe_cancel(self._starting_fut)
 
     def execute_from_commandline(self) -> NoReturn:
-        self._start_and_join(shutdown_loop=True)
+        self.start_system()
+        self.loop.run_until_complete(self.join())
+        self._shutdown_loop()
         # for mypy NoReturn
         raise SystemExit(EX_OK)
 
-    def start_and_join(self) -> None:
-        self._start_and_join(shutdown_loop=False)
+    def start_system(self) -> None:
+        self._starting_fut = asyncio.ensure_future(
+            self.start(), loop=self.loop
+        )
 
-    def _start_and_join(self, *, shutdown_loop: bool = True) -> None:
-        self._starting_fut = None
+    async def join(self) -> None:
+        # TODO: Due to `object AsyncMock can't be used in 'await' expression`,
+        #       have not be fully covered by unittests yet.
+        if self._starting_fut is None:
+            raise RuntimeError("Please start system before join it.")
+
         with exiting(file=self.stderr):
             try:
-                self._starting_fut = asyncio.ensure_future(
-                    self.start(),
-                    loop=self.loop,
-                )
-                self.loop.run_until_complete(self._starting_fut)
+                await self._starting_fut
             except asyncio.CancelledError:
                 pass
             except MemoryError:
@@ -302,31 +306,28 @@ class Worker(Service):
                 raise
             finally:
                 maybe_cancel(self._starting_fut)
-                self.on_worker_shutdown()
-                self.stop_and_shutdown(shutdown_loop=shutdown_loop)
+                await self.on_worker_shutdown()
+                await self.stop_and_shutdown()
 
-    def on_worker_shutdown(self) -> None:
+    async def on_worker_shutdown(self) -> None:
         ...
 
-    def stop_and_shutdown(self, shutdown_loop: bool = True) -> None:
+    async def stop_and_shutdown(self) -> None:
         if self._signal_stop_future and not self._signal_stop_future.done():
-            self.loop.run_until_complete(self._signal_stop_future)
+            await self._signal_stop_future
         elif not self._stopped.is_set():
-            self.loop.run_until_complete(self.stop())
+            await self.stop()
 
-        self._join()
+        await self._gather_all_after_stop()
 
-        if shutdown_loop:
-            self._shutdown_loop()
-
-    def _join(self) -> None:
+    async def _gather_all_after_stop(self) -> None:
         # Gather futures created by us.
         self.log.info("Gathering service tasks...")
         with suppress(asyncio.CancelledError):
-            self.loop.run_until_complete(self._gather_futures())
+            await self._gather_futures()
         # Gather absolutely all asyncio futures.
         self.log.info("Gathering all futures...")
-        self._gather_all()
+        await self._gather_all()
 
     def _shutdown_loop(self) -> None:
         try:
@@ -353,12 +354,12 @@ class Worker(Service):
     async def _sentinel_task(self) -> None:
         await asyncio.sleep(1.0)
 
-    def _gather_all(self) -> None:
+    async def _gather_all(self) -> None:
         # sleeps for at most 10 * 0.1s
         for _ in range(10):
             if not len(all_tasks(loop=self.loop)):
                 break
-            self.loop.run_until_complete(asyncio.sleep(0.1))
+            await asyncio.sleep(0.1)
         for task in all_tasks(loop=self.loop):
             task.cancel()
 

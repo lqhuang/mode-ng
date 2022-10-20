@@ -92,6 +92,9 @@ typecheck:
 test:
 	${PYTEST} .
 
+# test-inc:
+# 	${PYTEST} --inc --inc-path tests/ --inc-path src/mode/
+
 test-all: clean-pyc
 	${TOX}
 
@@ -103,36 +106,36 @@ distcheck: lint test
 dist: readme contrib clean-dist build
 
 # ------------------------- Dev setup ----------------------------------------
-. PHONY: venv
+.PHONY: venv
 venv:
 	${PYTHON} -m venv .venv --clear
 
-. PHONY: deps-default
+.PHONY: deps-default
 deps-default:
 	${PIP} install -U -r requirements/default.txt
 
-. PHONY: deps-dev
+.PHONY: deps-dev
 deps-dev:
 	${PIP} install -U -r requirements/dev.txt
 
-. PHONY: deps-docs
+.PHONY: deps-docs
 deps-docs:
 	${PIP} install -U -r requirements/docs.txt
 
-. PHONY: deps-test
+.PHONY: deps-test
 deps-test:
 	${PIP} install -U -r requirements/test.txt
 
-. PHONY: deps-typecheck
+.PHONY: deps-typecheck
 deps-typecheck:
 	${PIP} install -U -r requirements/typecheck.txt
 
-. PHONY: deps-extras
+.PHONY: deps-extras
 deps-extras:
 	${PIP} install -U -r requirements/extras/eventlet.txt
 	${PIP} install -U -r requirements/extras/uvloop.txt
 
-. PHONY: develop
+.PHONY: develop
 develop: deps-default deps-dist deps-docs deps-test deps-typecheck deps-extras
 	${PIP} install -e .
 
@@ -171,13 +174,13 @@ release:
 	${PYTHON} -m twine upload --skip-existing dist/*
 
 # ------------------------------ Docs ----------------------------------------
-. PHONY: Documentation
+.PHONY: Documentation
 Documentation:
 	${PIP} install -r requirements/docs.txt
 	(cd "$(SPHINX_DIR)"; $(MAKE) html)
 	mv "$(SPHINX_HTMLDIR)" $(DOCUMENTATION)
 
-. PHONY: docs
+.PHONY: docs
 docs: Documentation
 
 clean-docs:
