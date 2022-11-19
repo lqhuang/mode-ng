@@ -7,7 +7,7 @@ from typing import (
     Callable,
     ClassVar,
     ContextManager,
-    Generator,
+    Coroutine,
     Iterable,
     Mapping,
     MutableSequence,
@@ -46,7 +46,7 @@ __all__ = ["ServiceBase", "Service", "Diag", "task", "timer", "crontab"]
 ClockArg = Callable[[], float]
 
 #: Future type: Different types of awaitables.
-FutureT = Union[asyncio.Future, Generator[Any, None, Any], Awaitable]
+FutureT = Union[asyncio.Future, Coroutine[Any, None, Any], Awaitable]
 
 #: Argument type for ``Service.wait(*events)``
 #: Wait can take any number of futures or events to wait for.
@@ -741,7 +741,12 @@ class Service(ServiceBase, ServiceCallbacks):
     ) -> WaitResult:
         timeout = want_seconds(timeout) if timeout is not None else None
         coro = asyncio.wait(
-            cast(Iterable[Awaitable[Any]], coros),
+            [
+                asyncio.ensure_future(
+                    c.wait() if isinstance(c, Event) else c, loop=self.loop
+                )
+                for c in coros
+            ],
             return_when=asyncio.ALL_COMPLETED,
             timeout=timeout,
         )
@@ -756,8 +761,6 @@ class Service(ServiceBase, ServiceCallbacks):
         crashed = self._crashed
         loop = self.loop
 
-        # asyncio.wait will also ensure_future, but we need the handle
-        # so we can cancel them (if we don't they will leak).
         futures = {
             coro: asyncio.ensure_future(
                 (coro.wait() if isinstance(coro, Event) else coro),
@@ -805,8 +808,8 @@ class Service(ServiceBase, ServiceCallbacks):
         return WaitResult(results.results[0], False)
 
     async def _wait_stopped(self, timeout: float | None = None) -> None:
-        stopped = self._stopped.wait()
-        crashed = self._crashed.wait()
+        stopped = asyncio.ensure_future(self._stopped.wait(), loop=self.loop)
+        crashed = asyncio.ensure_future(self._crashed.wait(), loop=self.loop)
         done, pending = await asyncio.wait(
             [stopped, crashed],
             return_when=asyncio.FIRST_COMPLETED,
