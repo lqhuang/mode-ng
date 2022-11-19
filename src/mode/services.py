@@ -647,7 +647,7 @@ class Service(ServiceBase, ServiceCallbacks):
             return self.exit_stack.enter_context(context)
         raise TypeError(f"Not a context/async context: {type(context)!r}")
 
-    def add_future(self, coro: Awaitable) -> asyncio.Future:
+    def add_future(self, coro: Awaitable) -> asyncio.Task[None]:
         """Add relationship to asyncio.Future.
 
         The future will be joined when this service is stopped.
