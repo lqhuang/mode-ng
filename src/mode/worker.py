@@ -279,8 +279,12 @@ class Worker(Service):
     def execute_from_commandline(self) -> NoReturn:
         self.start_system()
         with exiting(file=self.stderr):
-            self.loop.run_until_complete(self.join())
-            self._shutdown_loop()
+            try:
+                self.loop.run_until_complete(self.join())
+            except asyncio.CancelledError:
+                pass
+            finally:
+                self._shutdown_loop()
         # for mypy NoReturn
         raise SystemExit(EX_OK)
 
