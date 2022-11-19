@@ -285,9 +285,7 @@ class MethodQueueWorker(Service):
     method_queue: MethodQueue
     mundane_level = "debug"
 
-    def __init__(
-        self, method_queue: MethodQueue, *, index: int, **kwargs: Any
-    ) -> None:
+    def __init__(self, method_queue: MethodQueue, *, index: int, **kwargs: Any) -> None:
         self.method_queue = method_queue
         self.index = index
         super().__init__(**kwargs)
@@ -377,13 +375,9 @@ class MethodQueue(Service):
             try:
                 result = await maybe_async(method(*args, **kwargs))
             except BaseException as exc:
-                promise._loop.call_soon_threadsafe(
-                    maybe_set_exception, promise, exc
-                )
+                promise._loop.call_soon_threadsafe(maybe_set_exception, promise, exc)
             else:
-                promise._loop.call_soon_threadsafe(
-                    maybe_set_result, promise, result
-                )
+                promise._loop.call_soon_threadsafe(maybe_set_result, promise, result)
         return promise
 
     @property

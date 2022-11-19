@@ -145,9 +145,7 @@ class Node(NodeT[T]):
 
     @property
     def path(self) -> str:
-        return "/".join(
-            reversed([shortlabel(node.data) for node in self.walk()])
-        )
+        return "/".join(reversed([shortlabel(node.data) for node in self.walk()]))
 
     @property
     def parent(self) -> Optional[NodeT]:

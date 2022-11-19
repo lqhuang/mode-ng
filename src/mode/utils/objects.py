@@ -54,7 +54,6 @@ except ImportError:  # pragma: no cover
     def _is_class_var(x: Any) -> bool:  # noqa
         return isinstance(x, _GenericAlias) and x.__origin__ is ClassVar
 
-
 else:  # pragma: no cover
     # CPython 3.6
     def _is_class_var(x: Any) -> bool:
@@ -96,7 +95,6 @@ try:
     @typing.no_type_check  # type: ignore
     class _UsingKwargsInNew(_InitSubclassCheck, ident=909):
         ...
-
 
 except TypeError:
     abc_compatible_with_init_subclass = False
@@ -403,9 +401,7 @@ def _ForwardRef_safe_eval(
             localns = globalns
         val = eval(ref.__forward_code__, globalns, localns)  # noqa: S307
         if not _is_class_var(val):
-            val = _type_check(
-                val, "Forward references must evaluate to types."
-            )
+            val = _type_check(val, "Forward references must evaluate to types.")
         ref.__forward_value__ = val
         ref.__forward_evaluated__ = True
     return ref.__forward_value__
@@ -470,15 +466,11 @@ def is_union(typ: Type) -> bool:
 def is_optional(typ: Type) -> bool:
     if is_union(typ):
         args = getattr(typ, "__args__", ())
-        return any(
-            [True for arg in args if arg is None or arg is type(None)]
-        )  # noqa
+        return any([True for arg in args if arg is None or arg is type(None)])  # noqa
     return False
 
 
-def _remove_optional(
-    typ: Type, *, find_origin: bool = False
-) -> tuple[List[Any], Type]:
+def _remove_optional(typ: Type, *, find_origin: bool = False) -> tuple[List[Any], Type]:
     args = getattr(typ, "__args__", ())
     if is_union(typ):
         # 3.7+: Optional[List[int]] -> Union[List[int], NoneType]

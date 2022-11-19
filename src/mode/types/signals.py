@@ -46,9 +46,7 @@ SignalHandlerT = Union[
     ],
 ]
 
-SignalHandlerRefT = Union[
-    Callable[[], SignalHandlerT], ReferenceType[SignalHandlerT]
-]
+SignalHandlerRefT = Union[Callable[[], SignalHandlerT], ReferenceType[SignalHandlerT]]
 
 FilterReceiverMapping = MutableMapping[Any, MutableSet[SignalHandlerRefT]]
 
@@ -68,7 +66,7 @@ class BaseSignalT(Generic[T]):
         loop: AbstractEventLoop = None,
         default_sender: Any = None,
         receivers: MutableSet[SignalHandlerRefT] = None,
-        filter_receivers: FilterReceiverMapping = None
+        filter_receivers: FilterReceiverMapping = None,
     ) -> None:
         ...
 
@@ -95,9 +93,7 @@ class SignalT(BaseSignalT[T]):
     """Base class for all async signals (using ``async def``)."""
 
     @abc.abstractmethod
-    async def __call__(
-        self, sender: T_contra, *args: Any, **kwargs: Any
-    ) -> None:
+    async def __call__(self, sender: T_contra, *args: Any, **kwargs: Any) -> None:
         ...
 
     @abc.abstractmethod

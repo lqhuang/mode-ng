@@ -59,9 +59,7 @@ _repr = _TupleAsListRepr().repr  # noqa: E305
 
 
 @contextmanager
-def exiting(
-    *, print_exception: bool = False, file: IO = sys.stderr
-) -> Iterator[None]:
+def exiting(*, print_exception: bool = False, file: IO = sys.stderr) -> Iterator[None]:
     try:
         yield
     except MemoryError:
@@ -132,9 +130,7 @@ class Worker(Service):
         self.log_file = log_file
         self.log_handlers = log_handlers or []
         self.redirect_stdouts = redirect_stdouts
-        self.redirect_stdouts_level = logging.level_number(
-            redirect_stdouts_level
-        )
+        self.redirect_stdouts_level = logging.level_number(redirect_stdouts_level)
         self.stdout = sys.stdout if stdout is None else stdout
         self.stderr = sys.stderr if stderr is None else stderr
         self.override_logging = override_logging
@@ -213,9 +209,7 @@ class Worker(Service):
             self._redirect_stdouts()
 
     def _redirect_stdouts(self) -> None:
-        self.add_context(
-            logging.redirect_stdouts(severity=self.redirect_stdouts_level)
-        )
+        self.add_context(logging.redirect_stdouts(severity=self.redirect_stdouts_level))
 
     def on_setup_root_logger(self, logger: Logger, level: int) -> None:
         ...
@@ -289,9 +283,7 @@ class Worker(Service):
         raise SystemExit(EX_OK)
 
     def start_system(self) -> None:
-        self._starting_fut = asyncio.ensure_future(
-            self.start(), loop=self.loop
-        )
+        self._starting_fut = asyncio.ensure_future(self.start(), loop=self.loop)
 
     async def join(self) -> None:
         # TODO: Due to `object AsyncMock can't be used in 'await' expression`,
@@ -375,9 +367,7 @@ class Worker(Service):
         try:
             import aiomonitor
         except ImportError:
-            self.log.warning(
-                "Cannot start console: aiomonitor is not installed"
-            )
+            self.log.warning("Cannot start console: aiomonitor is not installed")
         else:
             monitor = aiomonitor.start_monitor(
                 loop=self.loop,

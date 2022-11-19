@@ -190,9 +190,7 @@ class LogSeverityMixin(Protocol):
     """
 
     @abstractmethod
-    def log(
-        self, severity: int, message: str, *args: Any, **kwargs: Any
-    ) -> None:
+    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
         ...
 
     def dev(self, message: str, *args: Any, **kwargs: Any) -> None:
@@ -272,9 +270,7 @@ class CompositeLogger(LogSeverityMixin):
         self.logger = logger
         self.formatter = formatter
 
-    def log(
-        self, severity: int, message: str, *args: Any, **kwargs: Any
-    ) -> None:
+    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 2)
         self.logger.log(
             severity,
@@ -283,9 +279,7 @@ class CompositeLogger(LogSeverityMixin):
             **kwargs,
         )
 
-    def format(
-        self, severity: int, message: str, *args: Any, **kwargs: Any
-    ) -> str:
+    def format(self, severity: int, message: str, *args: Any, **kwargs: Any) -> str:
         if self.formatter:
             return self.formatter(severity, message, *args, **kwargs)
         return message
@@ -313,9 +307,7 @@ def formatter2(fun: FormatterHandler2) -> FormatterHandler2:
 
 def _format_extra(record: logging.LogRecord) -> str:
     return ", ".join(
-        f"{k}={v!r}"
-        for k, v in record.__dict__.items()
-        if k not in LOG_RECORD_BUILTINS
+        f"{k}={v!r}" for k, v in record.__dict__.items() if k not in LOG_RECORD_BUILTINS
     )
 
 
@@ -328,9 +320,7 @@ class TZAwareFormatOverwrite:
     default_time_format = r"%Y-%m-%dT%H:%M:%S"
     default_msec_format = r"%s.%03d"
 
-    def formatTime(
-        self, record: logging.LogRecord, datefmt: str | None = None
-    ) -> str:
+    def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
         ct = self.converter(record.created)  # type: ignore
 
         if datefmt:
@@ -380,9 +370,7 @@ class ExtensionFormatter(TZAwareFormatOverwrite, colorlog.ColoredFormatter):  # 
         format_arg = self.format_arg
         if isinstance(record.args, Mapping):
             # logger.log(severity, "msg %(foo)s", foo=303)
-            record.args = {
-                k: format_arg(v, record) for k, v in record.args.items()
-            }
+            record.args = {k: format_arg(v, record) for k, v in record.args.items()}
         else:
             if not isinstance(record.args, tuple):
                 # logger.log(severity, "msg %s", foo)
@@ -469,9 +457,7 @@ def setup_logging(
     else:
         raise TypeError(f"Unexpected type {type(log_file)}")
 
-    _log_level: int = (
-        logging.INFO if log_level is None else level_number(log_level)
-    )
+    _log_level: int = logging.INFO if log_level is None else level_number(log_level)
 
     _setup_logging(
         level=_log_level,
@@ -591,9 +577,7 @@ class Logwrapped(object):
             if kwargs:
                 if args:
                     info += ", "
-                info += ", ".join(
-                    f"{key}={value!r}" for key, value in kwargs.items()
-                )
+                info += ", ".join(f"{key}={value!r}" for key, value in kwargs.items())
             info += ")"
             self.logger.log(self.severity, info)
             return meth(*args, **kwargs)
@@ -805,18 +789,14 @@ class flight_recorder(ContextManager, LogSeverityMixin):
         if fut is not None:
             fut.cancel()
 
-    def log(
-        self, severity: int, message: str, *args: Any, **kwargs: Any
-    ) -> None:
+    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
         if self._fut:
             self._buffer_log(severity, message, args, kwargs)
         else:
             kwargs.setdefault("stacklevel", 2)
             self.logger.log(severity, message, *args, **kwargs)
 
-    def _buffer_log(
-        self, severity: int, message: str, args: Any, kwargs: Any
-    ) -> None:
+    def _buffer_log(self, severity: int, message: str, args: Any, kwargs: Any) -> None:
         log = LogMessage(severity, message, time.asctime(), args, kwargs)
         self._logs.append(log)
 
@@ -902,9 +882,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
 
 
 class _FlightRecorderProxy(LogSeverityMixin):
-    def log(
-        self, severity: int, message: str, *args: Any, **kwargs: Any
-    ) -> None:
+    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
         fl = self.current_flight_recorder()
         if fl is not None:
             return fl.log(severity, message, *args, **kwargs)
@@ -920,9 +898,7 @@ class FileLogProxy(TextIO):
     _threadlocal: threading.local = threading.local()
     _closed: bool = False
 
-    def __init__(
-        self, logger: Logger, *, severity: Severity | None = None
-    ) -> None:
+    def __init__(self, logger: Logger, *, severity: Severity | None = None) -> None:
         self.logger = logger
 
         if severity is not None:

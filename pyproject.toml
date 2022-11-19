@@ -105,7 +105,7 @@ disallow_untyped_calls = false
 # verbose regular expressions by Black. Use [ ] to denote a significant space
 # character.
 [tool.black]
-line-length = 79
+# line-length = 79
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -124,7 +124,7 @@ extend-exclude = '''
 
 [tool.isort]
 profile = "black"
-line_length = 79
+# line_length = 79
 known_typing = "typing"
 known_first_party = "mode"
 sections = "FUTURE,TYPING,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
