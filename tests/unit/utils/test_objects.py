@@ -15,6 +15,7 @@ from typing import (
     Tuple,
     Union,
 )
+from unittest.mock import Mock, ANY
 
 import abc
 import collections.abc
@@ -25,7 +26,7 @@ import pytest
 
 from mode import Service, ServiceT
 from mode.services import ServiceBase, ServiceCallbacks
-from mode.utils.mocks import ANY, IN, Mock
+from mode.utils.mocks import IN
 from mode.utils.objects import (
     ForwardRef,
     InvalidAnnotation,
@@ -293,9 +294,7 @@ def test__ForwardRef_safe_eval():
     assert _ForwardRef_safe_eval(ref1) == int
     assert ref1.__forward_evaluated__
     assert ref1.__forward_value__ == int
-    assert (
-        _ForwardRef_safe_eval(ForwardRef("foo"), localns={"foo": str}) == str
-    )
+    assert _ForwardRef_safe_eval(ForwardRef("foo"), localns={"foo": str}) == str
     assert _ForwardRef_safe_eval(
         ForwardRef("ClassVar[int]"), globalns=globals(), localns=locals()
     )

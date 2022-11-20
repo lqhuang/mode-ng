@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from mode.utils.mocks import Mock, patch
+from unittest.mock import Mock, patch
 from mode.utils.tracebacks import Traceback, format_task_stack
 
 

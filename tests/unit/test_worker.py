@@ -2,13 +2,13 @@ import signal
 import sys
 from contextlib import contextmanager
 from signal import Signals
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, Mock
 
 import pytest
 
 from mode import Service
 from mode.debug import BlockingDetector
-from mode.utils.mocks import Mock, call, mask_module, patch_module
+from mode.utils.mocks import call, mask_module, patch_module
 from mode.worker import Worker, exiting
 
 

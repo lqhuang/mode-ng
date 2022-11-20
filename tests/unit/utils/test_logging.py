@@ -6,7 +6,8 @@ import logging
 import sys
 import time
 from copy import deepcopy
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+from unittest.mock import ANY, AsyncMock, Mock, call, patch
 
 import pytest
 
@@ -32,7 +33,6 @@ from mode.utils.logging import (
     redirect_stdouts,
     setup_logging,
 )
-from mode.utils.mocks import ANY, AsyncMock, Mock, call, patch
 
 
 def log_called_with(logger, *args, stacklevel, **kwargs):
@@ -73,9 +73,7 @@ class test_CompositeLogger:
             stacklevel=2,
             kw=2,
         )
-        formatter_called_with(
-            formatter, logging.INFO, "msg", 1, kw=2, stacklevel=2
-        )
+        formatter_called_with(formatter, logging.INFO, "msg", 1, kw=2, stacklevel=2)
 
     def test_log__no_formatter(self, *, log, logger):
         log.formatter = None
@@ -278,9 +276,7 @@ class test_setup_logging:
 
 class test__setup_logging:
     def setup_method(self, method):
-        self.extension_formatter_patch = patch(
-            "mode.utils.logging.ExtensionFormatter"
-        )
+        self.extension_formatter_patch = patch("mode.utils.logging.ExtensionFormatter")
         self.extension_formatter = self.extension_formatter_patch.start()
         self.colorlog_patch = patch("mode.utils.logging.colorlog")
         self.colorlog = self.colorlog_patch.start()
@@ -388,11 +384,9 @@ def test_print_task_name():
     out = io.StringIO()
     task = Mock()
     task.__wrapped__ = Mock()
-    task._coro.__name__ = "foo"
     print_task_name(task, file=out)
     assert out.getvalue()
 
-    task._coro.__name__ = None
     task.__wrapped__ = None
     print_task_name(task, file=out)
     assert out.getvalue()
@@ -499,9 +493,7 @@ class test_flight_recorder:
 
     def test__buffer_log(self, bb):
         with patch("time.asctime") as asctime:
-            bb._buffer_log(
-                logging.ERROR, "msg %r %(foo)s", (1,), {"foo": "bar"}
-            )
+            bb._buffer_log(logging.ERROR, "msg %r %(foo)s", (1,), {"foo": "bar"})
             assert bb._logs[-1] == LogMessage(
                 logging.ERROR,
                 "msg %r %(foo)s",
@@ -515,7 +507,7 @@ class test_flight_recorder:
         assert not bb._logs
         bb._buffer_log(logging.ERROR, "msg %r %(foo)s", (1,), {"foo": "bar"})
         with patch("asyncio.sleep", AsyncMock()) as sleep:
-            sleep.coro.side_effect = asyncio.CancelledError()
+            sleep.side_effect = asyncio.CancelledError()
             await bb._waiting()
             sleep.assert_called_once_with(bb.timeout)
             assert bb._logs
@@ -701,12 +693,8 @@ def _log_kwargs(kwargs):
 
 
 EXPECTED_LOG_MESSAGES = [
-    LogMessage(
-        logging.DEBUG, "DEBUG %d %(a)s", "TIME", (1,), _log_kwargs({"a": "A"})
-    ),
-    LogMessage(
-        logging.INFO, "INFO %d %(b)s", "TIME", (2,), _log_kwargs({"b": "B"})
-    ),
+    LogMessage(logging.DEBUG, "DEBUG %d %(a)s", "TIME", (1,), _log_kwargs({"a": "A"})),
+    LogMessage(logging.INFO, "INFO %d %(b)s", "TIME", (2,), _log_kwargs({"b": "B"})),
     LogMessage(
         logging.WARNING,
         "WARNING %d %(c)s",
@@ -714,9 +702,7 @@ EXPECTED_LOG_MESSAGES = [
         (3,),
         _log_kwargs({"c": "C"}),
     ),
-    LogMessage(
-        logging.ERROR, "ERROR %d %(d)s", "TIME", (4,), _log_kwargs({"d": "D"})
-    ),
+    LogMessage(logging.ERROR, "ERROR %d %(d)s", "TIME", (4,), _log_kwargs({"d": "D"})),
     LogMessage(
         logging.CRITICAL,
         "CRITICAL %d %(e)s",

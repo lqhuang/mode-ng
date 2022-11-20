@@ -3,11 +3,11 @@ from typing import AsyncContextManager, ContextManager
 import asyncio
 import logging
 from asyncio.locks import Event
+from unittest.mock import Mock
 
 import pytest
 
 import mode
-from mode.utils.mocks import Mock
 
 
 class X(mode.Service):

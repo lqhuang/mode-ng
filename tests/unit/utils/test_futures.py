@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+from unittest.mock import Mock
 
 import pytest
 
@@ -12,7 +13,6 @@ from mode.utils.futures import (
     maybe_set_result,
     stampede,
 )
-from mode.utils.mocks import Mock
 
 
 class X:

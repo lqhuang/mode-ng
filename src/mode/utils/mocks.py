@@ -6,13 +6,10 @@ import sys
 import types
 import unittest.mock
 from contextlib import contextmanager
-from itertools import count
 from types import ModuleType
 from unittest.mock import MagicMock
 
-__all__ = ["IN", "call", "mask_module", "patch", "patch_module"]
-
-MOCK_CALL_COUNT = count(0)
+__all__ = ["IN", "call", "mask_module", "patch_module"]
 
 
 class IN:
@@ -116,5 +113,3 @@ class _Call(unittest.mock._Call):
 
 
 call = _Call(from_kall=False)
-
-patch = unittest.mock.patch

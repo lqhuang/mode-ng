@@ -1,5 +1,3 @@
-import abc
-import sys
 from typing import (
     AbstractSet,
     AsyncGenerator,
@@ -12,6 +10,10 @@ from typing import (
     MutableSet,
     Sequence,
 )
+
+import abc
+import sys
+from unittest.mock import MagicMock, Mock
 
 import pytest
 
@@ -33,7 +35,6 @@ from mode.locals import (
     SetProxy,
     maybe_evaluate,
 )
-from mode.utils.mocks import MagicMock, Mock
 
 
 class test_Proxy:
