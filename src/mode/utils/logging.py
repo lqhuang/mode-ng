@@ -331,15 +331,9 @@ class TZAwareFormatOverwrite:
                 s = self.default_msec_format % (s, record.msecs)
 
             m = self.tz_offset.match(time.strftime("%z"))
-            has_offset = False
-            if m and time.timezone:
+            if m:
                 hrs, mins = m.groups()
-                if int(hrs) or int(mins):
-                    has_offset = True
-                if not has_offset:
-                    s += "Z"
-                else:
-                    s += f"{hrs}:{mins}"
+                s += f"{hrs}:{mins}"
 
         return s
 
