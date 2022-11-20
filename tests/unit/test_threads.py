@@ -261,7 +261,7 @@ class test_ServiceThread:
 class test_MethodQueue:
     @pytest.mark.asyncio
     async def test_call(self):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop_policy().get_event_loop()
         queue = MethodQueue(num_workers=2)
 
         async with queue:
@@ -280,7 +280,7 @@ class test_MethodQueue:
 
     @pytest.mark.asyncio
     async def test_call_raising(self):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop_policy().get_event_loop()
         queue = MethodQueue(num_workers=2)
         all_done = asyncio.Event()
         calls = 0

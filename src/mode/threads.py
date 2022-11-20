@@ -102,10 +102,10 @@ class ServiceThread(Service):
         **kwargs: Any,
     ) -> None:
         # cannot share loop between threads, so create a new one
-        assert asyncio.get_event_loop()
-
-        self.parent_loop = loop or asyncio.get_event_loop()
-        self.thread_loop = thread_loop or asyncio.new_event_loop()
+        self.parent_loop = loop or asyncio.get_event_loop_policy().get_event_loop()
+        self.thread_loop = (
+            thread_loop or asyncio.get_event_loop_policy().new_event_loop()
+        )
         self._thread_started = Event()
 
         if Worker is not None:
