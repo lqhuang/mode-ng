@@ -37,7 +37,7 @@ jobs:
           python-version: "${{ matrix.python-version }}"
       - name: Install dependencies
         run: |
-          make deps-default
+          pip install .
           make deps-test
       - name: Run tests
         run: make test
