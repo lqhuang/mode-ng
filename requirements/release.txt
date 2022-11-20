@@ -4,3 +4,4 @@ pip
 packaging
 build
 twine
+bumpversion

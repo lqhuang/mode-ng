@@ -1,6 +1,27 @@
 # Changelong
 
+## 0.6.0 - 2022-11-20
+
+release-by: Lanqing Huang (@lqhuang)
+
+`mode` supports Python 3.11 now from `v0.6.0`!
+
+- Fix no offset when machine timezone is UTC
+- Fix run command of test CI job
+- Improve CI by only run with changes in specific dir
+- Add GitHub Actions as ci job
+- Deprecate `asyncio.get_event_loop()` with new approach
+- Fix all test cases due to deprecation of self defined `mocks` module
+- Deprecate self implemented `AsyncMock` and `MagicMock` from `utils`
+- Add example to show how to integrate `mode` as an component
+- Reformat by black with default line-length (to follow original mode)
+- Fix coroutine objects to `wait()`
+- Improve typing for `add_future` method
+- Suppress `CancelledError` while exiting
+
 ## 0.5.1 - 2022-10-20
+
+release-by: Lanqing Huang (@lqhuang)
 
 - Fix scope of `exiting` context manager
 
