@@ -293,8 +293,6 @@ class Worker(Service):
 
         try:
             await self._starting_fut
-        except asyncio.CancelledError:
-            pass
         except MemoryError:
             raise
         except Exception as exc:

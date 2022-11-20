@@ -1,3 +1,5 @@
+import asyncio
+
 import mode
 
 
@@ -13,11 +15,17 @@ class MyService(mode.Service):
             print("BACKGROUND SERVICE WAKING UP")
 
 
-if __name__ == "__main__":
-    mode.Worker(
+async def main():
+    worker = mode.Worker(
         MyService(),
         log_level="INFO",
         log_file=None,  # stderr
         # when daemon the worker must be explicitly stopped to end.
         daemon=True,
-    ).execute_from_commandline()
+    )
+    worker.start_system()
+    await worker.join()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
