@@ -105,11 +105,16 @@ disallow_untyped_calls = false
 # verbose regular expressions by Black. Use [ ] to denote a significant space
 # character.
 [tool.black]
-# line-length = 79
+line-length = 88
 include = '\.pyi?$'
+# If `--exclude` is not set, Black will automatically ignore files and directories
+# in `.gitignore` file(s), if present.
+# If you want Black to continue using `.gitignore` while also configuring the
+# exclusion rules, please use `--extend-exclude`.
 extend-exclude = '''
-/(
-  # exclude a few common directories in the root of the project
+(
+  # A regex preceded with ^/ will apply only to files and directories
+  # in the root of the project.
   | \.eggs
   | \.git
   | \.tox
@@ -119,7 +124,7 @@ extend-exclude = '''
   | _build
   | build
   | dist
-)/
+)
 '''
 
 [tool.isort]
@@ -143,6 +148,29 @@ sections = "FUTURE,TYPING,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 typeCheckingMode = "basic"
 reportGeneralTypeIssues = false
 # reportPrivateUsage = false
+
+# ========================
+#     Ruff
+# ========================
+
+[tool.ruff]
+line-length = 88
+
+# Enable rules:
+# Pyflakes (F), pycodestyle (E, W), pydocstyle (D), pyupgrade (UP),
+# flake8-bandit (S), flake8-bugbear (B), flake8-comprehensions (C4)
+# Pylint (PLC, PLE, PLR, PLW), Ruff-specific rules (RUF)
+select = ["F", "E", "W", "UP", "S", "B", "C4", "PLC", "PLE", "PLR", "PLW"]
+extend-select = ["RUF"]
+
+ignore = [
+  "E501",   # Line too long (95 > 88 characters)
+  "S101",   # Use of `assert` detected
+  "RUF100", # Unused `noqa` directive for: E305 (not implemented)
+]
+
+fix = false
+ignore-init-module-imports = true
 
 # ========================
 #          Pytest

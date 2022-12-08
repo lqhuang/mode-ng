@@ -1,8 +1,9 @@
 -r flakes.txt
 -r typecheck.txt
 
-bumpversion
 black
+isort
+ruff
 pipdeptree
 
 # For debugging

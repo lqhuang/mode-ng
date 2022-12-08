@@ -15,7 +15,7 @@ body = """
     ## Unreleased - {{ now(utc=true) | date(format="%Y-%m-%d") }}
 {% endif %}\
 {% for commit in commits %}
-    - {% if commit.breaking -%}[**breaking**] {% endif -%} {{ commit.message | upper_first }}\
+    - {% if commit.breaking -%}❗️{% endif %} {{ commit.message | upper_first }}\
 {% endfor %}\n\n
 """
 # remove the leading and trailing whitespaces from the template
