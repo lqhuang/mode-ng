@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mode-ng"
-version = "0.6.0"
+version = "0.6.1"
 description = "AsyncIO Service-based programming."
 readme = "README.rst"
 requires-python = ">=3.10"
@@ -170,7 +170,14 @@ ignore = [
 ]
 
 fix = false
+#  A list of check code prefixes to consider autofix-able.
+fixable = ["F", "E711", "UP", "B"]
+unfixable = ["I"]
+
 ignore-init-module-imports = true
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"] # imported but unused
 
 # ========================
 #          Pytest

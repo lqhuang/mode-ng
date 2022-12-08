@@ -1,5 +1,17 @@
 # Changelog
 
+Note: Symbol ❗️ stands for breaking changes
+
+## 0.6.1 - 2022-12-08
+
+release-by: Lanqing Huang (@lqhuang)
+
+- Run `pyupgrade` and `black` to reformat codes
+- Add `ruff` as linter
+- Fix `CancelledError` raised after using `join()`
+- Add `cache-dependency-path` for pip cache
+- Add caching and Py `3.12-dev` to test CI
+
 ## 0.6.0 - 2022-11-20
 
 release-by: Lanqing Huang (@lqhuang)
@@ -31,8 +43,8 @@ release-by: Lanqing Huang (@lqhuang)
 
 From `mode-ng-0.5.0`, `Worker` is able to be embeded in other codes without terminating all while worker shutdown.
 
-- [**breaking**] Seperate `start` and `join` into two functions
-- [**breaking**] Enable `start_and_join` without shutdown loop
+- ❗️Seperate `start` and `join` into two functions
+- ❗️Enable `start_and_join` without shutdown loop
 - Rebuild docs gen scripts
 - Tune makefile
 
@@ -54,21 +66,21 @@ Please carefully test your codes, if you're using it in production.
 
 ### Commits history
 
-- [**breaking**] Update logging time format to timezone aware and format `extra` field in logger
+- ❗️Update logging time format to timezone aware and format `extra` field in logger
 - Make `want_seconds` raise `TypeError` when input is `None`
 - Reorg cases for unit tests
 - Update CoC guidelines and README
-- [**breaking**] Improve logging module and setup args `loglevel` has been rename to `log_level`
+- ❗️Improve logging module and setup args `loglevel` has been rename to `log_level`
 - Improve implementations of singledispatch function
 - Improve type hints for `signals.py` and reformat for `proxy.py`
 - Fix circular imports and remove lazy importer
 - Improve type hints for worker, services, etc
-- [**breaking**] Remove `on_init` from now
+- ❗️Remove `on_init` from now
 - Improve notes for lazy loading
 - Reconfig `.bumpversion.cfg`
 - Tune flake8 config and adjust requirements content
-- [**breaking**] Rename `annotations` to `reveal_annotations` due to conflict
-- [**breaking**] Replace `Event` lock to std (asyncio) version. Need more tests in async tasks running in multiple threads.
+- ❗️Rename `annotations` to `reveal_annotations` due to conflict
+- ❗️Replace `Event` lock to std (asyncio) version. Need more tests in async tasks running in multiple threads.
 - Remove `contexts.py` and improve type hints
 - Adjust docs location about installation
 
