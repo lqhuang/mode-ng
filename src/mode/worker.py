@@ -28,8 +28,9 @@ from asyncio import all_tasks
 from contextlib import contextmanager, suppress
 from logging import Handler, Logger
 
+from mode.types import ServiceT
+
 from .services import Service
-from .types import ServiceT
 from .utils import logging
 from .utils.futures import maybe_cancel
 from .utils.imports import symbol_by_name
@@ -293,6 +294,8 @@ class Worker(Service):
 
         try:
             await self._starting_fut
+        except asyncio.CancelledError:
+            pass
         except MemoryError:
             raise
         except Exception as exc:
