@@ -1,13 +1,5 @@
 """Time, date and timezone related utilities."""
-from typing import (
-    AsyncContextManager,
-    Callable,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Type,
-    Union,
-)
+from typing import AsyncContextManager, Callable, Mapping, NamedTuple
 
 import abc
 import asyncio
@@ -37,7 +29,7 @@ else:
     TIME_MONOTONIC = time.monotonic
 
 #: Seconds can be expressed as float or :class:`~datetime.timedelta`,
-Seconds = Union[timedelta, int, float, str]
+Seconds = timedelta | int | float | str
 
 
 class Unit(NamedTuple):
@@ -119,7 +111,7 @@ class Bucket(AsyncContextManager):
         *,
         fill_rate: Seconds = None,
         capacity: Seconds = None,
-        raises: Type[BaseException] = None,
+        raises: type[BaseException] = None,
         loop: asyncio.AbstractEventLoop = None,
     ) -> None:
         self.rate = want_seconds(rate)
@@ -161,10 +153,10 @@ class Bucket(AsyncContextManager):
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] = None,
+        exc_type: type[BaseException] = None,
         exc_val: BaseException = None,
         exc_tb: TracebackType = None,
-    ) -> Optional[bool]:
+    ) -> bool | None:
         return None
 
 
@@ -230,8 +222,8 @@ def rate_limit(
     rate: float,
     over: Seconds = 1.0,
     *,
-    bucket_type: Type[Bucket] = TokenBucket,
-    raises: Type[BaseException] = None,
+    bucket_type: type[Bucket] = TokenBucket,
+    raises: type[BaseException] = None,
     loop: asyncio.AbstractEventLoop = None,
 ) -> Bucket:
     """Create rate limiting manager."""

@@ -1,10 +1,4 @@
 """Traceback utilities."""
-import asyncio
-import inspect
-import io
-import sys
-from traceback import StackSummary, print_list, walk_tb
-from types import FrameType, TracebackType
 from typing import (
     IO,
     Any,
@@ -13,9 +7,15 @@ from typing import (
     Generator,
     Mapping,
     Optional,
-    Union,
     cast,
 )
+
+import asyncio
+import inspect
+import io
+import sys
+from traceback import StackSummary, print_list, walk_tb
+from types import FrameType, TracebackType
 
 __all__ = [
     "Traceback",
@@ -195,10 +195,10 @@ class Traceback(_BaseTraceback):
     @classmethod
     def from_coroutine(
         cls,
-        coro: Union[AsyncGenerator, Coroutine, Generator],
+        coro: AsyncGenerator | Coroutine | Generator,
         *,
         depth: int = 0,
-        limit: Optional[int] = DEFAULT_MAX_FRAMES,
+        limit: int | None = DEFAULT_MAX_FRAMES,
     ) -> _BaseTraceback:
         try:
             frame = cls._detect_frame(coro)
@@ -221,8 +221,8 @@ class Traceback(_BaseTraceback):
             num_frames += 1
             current_frame = current_frame.f_back  # type: ignore
         frames.reverse()
-        prev: Optional[_BaseTraceback] = None
-        root: Optional[_BaseTraceback] = None
+        prev: _BaseTraceback | None = None
+        root: _BaseTraceback | None = None
         for f in frames:
             tb = cls(f)
             if root is None:
@@ -252,7 +252,7 @@ class Traceback(_BaseTraceback):
         return cls._get_coroutine_frame(obj)
 
     @classmethod
-    def _get_coroutine_frame(cls, coro: Union[Coroutine, Generator]) -> FrameType:
+    def _get_coroutine_frame(cls, coro: Coroutine | Generator) -> FrameType:
         try:
             if inspect.isgenerator(coro):
                 # is a @asyncio.coroutine wrapped generator
@@ -279,7 +279,7 @@ class Traceback(_BaseTraceback):
             raise cls._what_is_this(agen) from exc
 
     @staticmethod
-    def _get_coroutine_next(coro: Union[AsyncGenerator, Coroutine, Generator]) -> Any:
+    def _get_coroutine_next(coro: AsyncGenerator | Coroutine | Generator) -> Any:
         if inspect.isasyncgen(coro):
             # is a async def async-generator
             return cast(AsyncGenerator, coro).ag_await

@@ -1,7 +1,7 @@
 """Async iterator lost and found missing methods: aiter, anext, etc."""
 from __future__ import annotations
 
-from typing import Any, Optional, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 import sys
 from collections.abc import AsyncIterable, AsyncIterator, Iterable, Iterator
@@ -70,7 +70,7 @@ def _aiter_iter(it: Iterable[T]) -> AsyncIterator[T]:
     return AsyncIterWrapper(iter(it)).__aiter__()
 
 
-async def anext(it: AsyncIterator[T], *default: Optional[T]) -> T:
+async def anext(it: AsyncIterator[T], *default: T | None) -> T:
     """Get next value from async iterator, or `default` if empty.
 
     Raises:
@@ -103,9 +103,7 @@ class _ARangeIterator(AsyncIterator[int]):
 class arange(AsyncIterable[int]):
     """Async generator that counts like :class:`range`."""
 
-    def __init__(
-        self, *slice_args: Optional[int], **slice_kwargs: Optional[int]
-    ) -> None:
+    def __init__(self, *slice_args: int | None, **slice_kwargs: int | None) -> None:
         s = slice(*slice_args, **slice_kwargs)
         self.start = s.start or 0
         self.stop = s.stop

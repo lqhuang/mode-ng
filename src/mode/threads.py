@@ -8,23 +8,18 @@ use the ``on_thread_stop`` callback instead of the on_stop callback.
 """
 from __future__ import annotations
 
-from typing import Any, Awaitable, Callable, NamedTuple, Optional, Type
+from typing import Any, Awaitable, Callable, NamedTuple
 
 import asyncio
 import sys
 import threading
 import traceback
 from asyncio.events import AbstractEventLoop
+from asyncio.locks import Event
 from time import monotonic
 
 from .services import Service
-from .utils.futures import (
-    maybe_async,
-    maybe_set_exception,
-    maybe_set_result,
-    notify,
-)
-from asyncio.locks import Event
+from .utils.futures import maybe_async, maybe_set_exception, maybe_set_result, notify
 
 __all__ = [
     "QueuedMethod",
@@ -78,7 +73,7 @@ class WorkerThread(threading.Thread):
 class ServiceThread(Service):
     """Service subclass running within a dedicated thread."""
 
-    Worker: Type[WorkerThread] = WorkerThread
+    Worker: type[WorkerThread] = WorkerThread
 
     abstract = True
     wait_for_shutdown = True
@@ -87,9 +82,9 @@ class ServiceThread(Service):
     #: underlying thread to be fully started.
     wait_for_thread: bool = True
 
-    _thread: Optional[WorkerThread] = None
+    _thread: WorkerThread | None = None
     _thread_started: Event
-    _thread_running: Optional[asyncio.Future] = None
+    _thread_running: asyncio.Future | None = None
 
     last_wakeup_at: float = 0.0
 
@@ -98,7 +93,7 @@ class ServiceThread(Service):
         *,
         loop: AbstractEventLoop | None = None,
         thread_loop: AbstractEventLoop | None = None,
-        Worker: Type[WorkerThread] | None = None,
+        Worker: type[WorkerThread] | None = None,
         **kwargs: Any,
     ) -> None:
         # cannot share loop between threads, so create a new one
@@ -264,7 +259,7 @@ class ServiceThread(Service):
 
     @Service.task
     async def _thread_keepalive(self) -> None:
-        async for sleep_time in self.itertimer(
+        async for _sleep_time in self.itertimer(
             1.0, name=f"_thread_keepalive-{self.label}"
         ):
             # The consumer thread will have a separate event loop,
@@ -310,7 +305,7 @@ class MethodQueueWorker(Service):
 
 
 class MethodQueue(Service):
-    Worker: Type[MethodQueueWorker] = MethodQueueWorker
+    Worker: type[MethodQueueWorker] = MethodQueueWorker
 
     _queue: asyncio.Queue
     _queue_ready: Event
@@ -394,7 +389,7 @@ class QueueServiceThread(ServiceThread):
 
     abstract = True
 
-    _method_queue: Optional[MethodQueue] = None
+    _method_queue: MethodQueue | None = None
 
     @property
     def method_queue(self) -> MethodQueue:

@@ -12,10 +12,7 @@ from typing import (
     Mapping,
     MutableSequence,
     NamedTuple,
-    Optional,
     Sequence,
-    Type,
-    Union,
     cast,
 )
 
@@ -30,8 +27,9 @@ from functools import wraps
 from time import monotonic, perf_counter
 from types import TracebackType
 
+from mode.types import DiagT, ServiceT
+
 from .timers import Timer
-from .types import DiagT, ServiceT
 from .utils.cron import secs_for_next
 from .utils.logging import CompositeLogger, get_logger, level_number
 from .utils.objects import iter_mro_reversed, qualname
@@ -46,11 +44,11 @@ __all__ = ["ServiceBase", "Service", "Diag", "task", "timer", "crontab"]
 ClockArg = Callable[[], float]
 
 #: Future type: Different types of awaitables.
-FutureT = Union[asyncio.Future, Coroutine[Any, None, Any], Awaitable]
+FutureT = asyncio.Future | Coroutine[Any, None, Any] | Awaitable
 
 #: Argument type for ``Service.wait(*events)``
 #: Wait can take any number of futures or events to wait for.
-WaitArgT = Union[FutureT, asyncio.Event, Event]
+WaitArgT = FutureT | asyncio.Event | Event
 
 EVENT_TYPES = (asyncio.Event, Event)
 
@@ -97,7 +95,7 @@ class ServiceBase(ServiceT):
     @classmethod
     def _init_subclass_logger(cls) -> None:
         # make sure class has a logger.
-        logger = cast(Optional[logging.Logger], cls.logger)
+        logger = cast(logging.Logger | None, cls.logger)
         if logger is None or getattr(logger, "__modex__", False):
             _logger = cls.logger = get_logger(cls.__module__)
             _logger.__modex__ = True  # type: ignore
@@ -115,10 +113,10 @@ class ServiceBase(ServiceT):
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None = None,
+        exc_type: type[BaseException] | None = None,
         exc_val: BaseException | None = None,
         exc_tb: TracebackType | None = None,
-    ) -> Optional[bool]:
+    ) -> bool | None:
         try:
             await self.stop()
         finally:
@@ -347,7 +345,7 @@ class Service(ServiceBase, ServiceCallbacks):
     """
 
     abstract: ClassVar[bool] = True
-    Diag: Type[DiagT] = Diag
+    Diag: type[DiagT] = Diag
 
     #: Set to True if .stop must wait for the shutdown flag to be set.
     wait_for_shutdown = False
@@ -377,7 +375,7 @@ class Service(ServiceBase, ServiceCallbacks):
     _crashed: Event
 
     #: The reason for last crash (an exception instance).
-    _crash_reason: Optional[BaseException]
+    _crash_reason: BaseException | None
 
     #: The beacon is used to maintain a graph of services.
     _beacon: NodeT
@@ -445,7 +443,7 @@ class Service(ServiceBase, ServiceCallbacks):
             async def _repeater(self: Service) -> None:
                 if exec_first:
                     await fun(self)
-                async for sleep_time in self.itertimer(
+                async for _sleep_time in self.itertimer(
                     _interval,
                     name=_timer_name,
                     max_drift_correction=max_drift_correction,
@@ -1119,11 +1117,11 @@ class Service(ServiceBase, ServiceCallbacks):
         self._beacon = beacon
 
     @property
-    def crash_reason(self) -> Optional[BaseException]:
+    def crash_reason(self) -> BaseException | None:
         return self._crash_reason
 
     @crash_reason.setter
-    def crash_reason(self, reason: Optional[BaseException]) -> None:
+    def crash_reason(self, reason: BaseException | None) -> None:
         self._crash_reason = reason
 
 
@@ -1135,7 +1133,7 @@ crontab = Service.crontab
 class _AwaitableService(Service):
     mundane_level = "debug"
 
-    _fut: Optional[asyncio.Future]
+    _fut: asyncio.Future | None
 
     def __init__(
         self, coro: Awaitable, *, name: str | None = None, **kwargs: Any

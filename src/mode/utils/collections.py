@@ -1,19 +1,5 @@
 """Custom data structures."""
-import abc
-import collections.abc
-import threading
 import typing
-from collections import OrderedDict, UserList
-from contextlib import nullcontext
-from heapq import (
-    heapify,
-    heappop,
-    heappush,
-    heappushpop,
-    heapreplace,
-    nlargest,
-    nsmallest,
-)
 from typing import (
     AbstractSet,
     Any,
@@ -28,13 +14,26 @@ from typing import (
     MutableMapping,
     MutableSequence,
     MutableSet,
-    Optional,
     Sequence,
     TypeVar,
-    Union,
     ValuesView,
     cast,
     overload,
+)
+
+import abc
+import collections.abc
+import threading
+from collections import OrderedDict, UserList
+from contextlib import nullcontext
+from heapq import (
+    heapify,
+    heappop,
+    heappush,
+    heappushpop,
+    heapreplace,
+    nlargest,
+    nsmallest,
 )
 
 if typing.TYPE_CHECKING:
@@ -71,7 +70,7 @@ KT = TypeVar("KT")
 VT = TypeVar("VT")
 _S = TypeVar("_S")
 
-_Setlike = Union[AbstractSet[T], Iterable[T]]
+_Setlike = AbstractSet[T] | Iterable[T]
 
 
 class Heap(MutableSequence[T]):
@@ -266,7 +265,7 @@ class FastUserSet(MutableSet[T]):
     def __len__(self) -> int:
         return len(self.data)
 
-    def __or__(self, other: AbstractSet) -> AbstractSet[Union[T, T_co]]:
+    def __or__(self, other: AbstractSet) -> AbstractSet[T | T_co]:
         return self.data.__or__(other)
 
     def __rand__(self, other: AbstractSet[T]) -> MutableSet[T]:
@@ -426,7 +425,7 @@ class LRUCache(FastUserDict, MutableMapping[KT, VT], MappingViewProxy):
             to access/mutate the cache.
     """
 
-    limit: Optional[int]
+    limit: int | None
     thread_safety: bool
     _mutex: ContextManager
     data: OrderedDict

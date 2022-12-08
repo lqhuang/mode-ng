@@ -1,6 +1,7 @@
 """Text and string manipulation utilities."""
+from typing import IO, AnyStr, Iterable, Iterator, NamedTuple
+
 from difflib import SequenceMatcher
-from typing import IO, AnyStr, Iterable, Iterator, NamedTuple, Optional
 
 __all__ = [
     "FuzzyMatch",
@@ -173,7 +174,7 @@ def fuzzymatch_iter(
 
 def fuzzymatch_best(
     haystack: Iterable[str], needle: str, *, min_ratio: float = 0.6
-) -> Optional[str]:
+) -> str | None:
     """Fuzzy Match - Return best match only (single scalar value)."""
     try:
         return sorted(
@@ -246,9 +247,7 @@ def pluralize(n: int, text: str, suffix: str = "s") -> str:
     return text
 
 
-def maybecat(
-    s: Optional[AnyStr], suffix: str = "", *, prefix: str = ""
-) -> Optional[str]:
+def maybecat(s: AnyStr | None, suffix: str = "", *, prefix: str = "") -> str | None:
     """Concatenate string only if existing string s' is defined.
 
     Keyword Arguments:

@@ -9,10 +9,7 @@ from typing import (
     ContextManager,
     Coroutine,
     MutableMapping,
-    Optional,
-    Type,
     TypeVar,
-    Union,
 )
 
 import abc
@@ -31,7 +28,7 @@ __all__ = [
 
 T = TypeVar("T")
 
-AsyncFun = Union[Awaitable[T], Coroutine[Any, Any, T]]
+AsyncFun = Awaitable[T] | Coroutine[Any, Any, T]
 
 
 class DiagT(abc.ABC):
@@ -60,7 +57,7 @@ class ServiceT(AsyncContextManager):
         :class:`mode.Service`.
     """
 
-    Diag: Type[DiagT]
+    Diag: type[DiagT]
     diag: DiagT
     async_exit_stack: AsyncExitStack
     exit_stack: ExitStack
@@ -68,8 +65,8 @@ class ServiceT(AsyncContextManager):
     shutdown_timeout: float
     wait_for_shutdown: bool = False
     restart_count: int = 0
-    supervisor: Optional[SupervisorStrategyT] = None
-    _loop: Optional[asyncio.AbstractEventLoop]
+    supervisor: SupervisorStrategyT | None = None
+    _loop: asyncio.AbstractEventLoop | None
 
     @abc.abstractmethod
     def __init__(
@@ -185,9 +182,9 @@ class ServiceT(AsyncContextManager):
 
     @property
     @abc.abstractmethod
-    def crash_reason(self) -> Optional[BaseException]:
+    def crash_reason(self) -> BaseException | None:
         ...
 
     @crash_reason.setter
-    def crash_reason(self, reason: Optional[BaseException]) -> None:
+    def crash_reason(self, reason: BaseException | None) -> None:
         ...

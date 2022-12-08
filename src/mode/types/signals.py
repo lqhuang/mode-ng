@@ -35,18 +35,14 @@ __all__ = [
 T = TypeVar("T")
 T_contra = TypeVar("T_contra", contravariant=True)
 
-SignalHandlerT = Union[
-    Callable[
-        [T, VarArg(), NamedArg("BaseSignalT", name="signal"), KwArg()],
-        None,
-    ],
-    Callable[
-        [T, VarArg(), NamedArg("BaseSignalT", name="signal"), KwArg()],
-        Awaitable[None],
-    ],
-]
+SignalHandlerT = (
+    Callable[[T, VarArg(), NamedArg("BaseSignalT", name="signal"), KwArg()], None]
+    | Callable[
+        [T, VarArg(), NamedArg("BaseSignalT", name="signal"), KwArg()], Awaitable[None]
+    ]
+)
 
-SignalHandlerRefT = Union[Callable[[], SignalHandlerT], ReferenceType[SignalHandlerT]]
+SignalHandlerRefT = Callable[[], SignalHandlerT] | ReferenceType[SignalHandlerT]
 
 FilterReceiverMapping = MutableMapping[Any, MutableSet[SignalHandlerRefT]]
 
@@ -55,14 +51,14 @@ class BaseSignalT(Generic[T]):
     """Base type for all signals."""
 
     name: str
-    owner: Optional[Type]
+    owner: type | None
 
     @abc.abstractmethod
     def __init__(
         self,
         *,
         name: str = None,
-        owner: Type = None,
+        owner: type = None,
         loop: AbstractEventLoop = None,
         default_sender: Any = None,
         receivers: MutableSet[SignalHandlerRefT] = None,

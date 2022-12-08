@@ -1,8 +1,9 @@
 """Type classes for :mod:`mode.utils.trees`."""
 from __future__ import annotations
 
+from typing import Any, Generic, Iterator, TypeVar
+
 import abc
-from typing import Any, Generic, Iterator, Optional, TypeVar, Union
 
 from .graphs import DependencyGraphT
 
@@ -27,11 +28,11 @@ class NodeT(Generic[_T]):
         ...
 
     @abc.abstractmethod
-    def add(self, data: Union[_T, "NodeT[_T]"]) -> None:
+    def add(self, data: _T | NodeT[_T]) -> None:
         ...
 
     @abc.abstractmethod
-    def add_deduplicate(self, data: Union[_T, "NodeT[_T]"]) -> None:
+    def add_deduplicate(self, data: _T | NodeT[_T]) -> None:
         ...
 
     @abc.abstractmethod
@@ -60,7 +61,7 @@ class NodeT(Generic[_T]):
 
     @property
     @abc.abstractmethod
-    def parent(self) -> Optional[NodeT]:
+    def parent(self) -> NodeT | None:
         ...
 
     @parent.setter
@@ -69,7 +70,7 @@ class NodeT(Generic[_T]):
 
     @property
     @abc.abstractmethod
-    def root(self) -> Optional[NodeT]:
+    def root(self) -> NodeT | None:
         ...
 
     @root.setter

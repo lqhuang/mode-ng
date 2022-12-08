@@ -6,8 +6,9 @@ from typing import Any, AsyncContextManager, ContextManager, Optional
 
 import abc
 
+from mode.types import ServiceT
+
 from .services import ServiceBase
-from .types import ServiceT
 from .utils.types.trees import NodeT
 
 __all__ = ["ServiceProxy"]
@@ -107,9 +108,9 @@ class ServiceProxy(ServiceBase):
         self._service.beacon = beacon
 
     @property
-    def crash_reason(self) -> Optional[BaseException]:
+    def crash_reason(self) -> BaseException | None:
         return self._service.crash_reason
 
     @crash_reason.setter
-    def crash_reason(self, reason: Optional[BaseException]) -> None:
+    def crash_reason(self, reason: BaseException | None) -> None:
         self._service.crash_reason = reason

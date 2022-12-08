@@ -1,19 +1,10 @@
 """Signals - implementation of the Observer pattern."""
+from typing import Any, Callable, Iterable, Mapping, MutableSet, cast, no_type_check
+
 import asyncio
 from collections import defaultdict
 from functools import partial
 from types import MethodType
-from typing import (
-    Any,
-    Callable,
-    Iterable,
-    Mapping,
-    MutableSet,
-    Optional,
-    Type,
-    cast,
-    no_type_check,
-)
 from weakref import ReferenceType, WeakMethod, ref
 
 from .types.signals import (
@@ -41,7 +32,7 @@ class BaseSignal(BaseSignalT[T]):
         self,
         *,
         name: str = None,
-        owner: Type = None,
+        owner: type = None,
         loop: asyncio.AbstractEventLoop = None,
         default_sender: Any = None,
         receivers: MutableSet[SignalHandlerRefT] | None = None,
@@ -82,7 +73,7 @@ class BaseSignal(BaseSignalT[T]):
             filter_receivers=self._filter_receivers,
         )
 
-    def __set_name__(self, owner: Type, name: str) -> None:
+    def __set_name__(self, owner: type, name: str) -> None:
         # If signal is an attribute of a class, we use __set_name__
         # to show the location of the signal in __repr__.
         # E.g.::
@@ -168,9 +159,7 @@ class BaseSignal(BaseSignalT[T]):
                 dead_refs.add(href)
         return live_receivers, dead_refs
 
-    def _is_alive(
-        self, ref: SignalHandlerRefT
-    ) -> tuple[bool, Optional[SignalHandlerT]]:
+    def _is_alive(self, ref: SignalHandlerRefT) -> tuple[bool, SignalHandlerT | None]:
         if isinstance(ref, ReferenceType):
             value = ref()
             return value is not None, value

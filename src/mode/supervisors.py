@@ -6,12 +6,14 @@ Don't know supervisors? Read about them them here:
 http://learnyousomeerlang.com/supervisors
 
 """
+from typing import Any, Awaitable, Callable
+
 import asyncio
-from typing import Any, Awaitable, Callable, Optional, Type
+
+from mode.types import ServiceT, SupervisorStrategyT
 
 from .exceptions import MaxRestartsExceeded
 from .services import Service
-from .types import ServiceT, SupervisorStrategyT
 from .utils.futures import notify
 from .utils.logging import get_logger
 from .utils.times import Bucket, Seconds, rate_limit, want_seconds
@@ -31,7 +33,7 @@ class SupervisorStrategy(Service, SupervisorStrategyT):
     """Base class for all supervisor strategies."""
 
     # set this future to wakeup supervisor
-    _please_wakeup: Optional[asyncio.Future]
+    _please_wakeup: asyncio.Future | None
 
     #: the services we manage
     _services: list[ServiceT]
@@ -50,7 +52,7 @@ class SupervisorStrategy(Service, SupervisorStrategyT):
         *services: ServiceT,
         max_restarts: Seconds = 100.0,
         over: Seconds = 1.0,
-        raises: Type[BaseException] = MaxRestartsExceeded,
+        raises: type[BaseException] = MaxRestartsExceeded,
         replacement: Callable[[ServiceT, int], Awaitable[ServiceT]] = None,
         **kwargs: Any,
     ) -> None:

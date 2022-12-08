@@ -1,8 +1,9 @@
 """Enable :pypi:`gevent` support for :mod:`asyncio`."""
+from typing import cast  # noqa: F401,E402
+
 import asyncio  # noqa: E402,I100,I202
 import os
 import warnings
-from typing import Optional, cast  # noqa: F401,E402
 
 os.environ["GEVENT_LOOP"] = "mode.loop._gevent_loop.Loop"
 try:
@@ -42,7 +43,7 @@ if asyncio._get_running_loop() is not None:
 class Policy(aiogevent.EventLoopPolicy):  # type: ignore
     """Custom gevent event loop policy."""
 
-    _loop: Optional[asyncio.AbstractEventLoop] = None
+    _loop: asyncio.AbstractEventLoop | None = None
 
     def get_event_loop(self) -> asyncio.AbstractEventLoop:
         # aiogevent raises an error here current_thread() is not MainThread,

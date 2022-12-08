@@ -1,6 +1,7 @@
 """Event loop utilities."""
-import asyncio
 from typing import Any, Callable
+
+import asyncio
 
 __all__ = ["clone_loop", "call_asap"]
 

@@ -72,10 +72,6 @@ when first needed), you can pass the `cache=True` argument to :class:`Proxy`:
     ...    x['foo']
     'value'
 """
-import sys
-from collections import deque
-from functools import wraps
-from types import GetSetDescriptorType, TracebackType
 from typing import (
     AbstractSet,
     Any,
@@ -96,16 +92,18 @@ from typing import (
     MutableMapping,
     MutableSequence,
     MutableSet,
-    Optional,
     Sequence,
-    Type,
     TypeVar,
-    Union,
     ValuesView,
     cast,
     no_type_check,
     overload,
 )
+
+import sys
+from collections import deque
+from functools import wraps
+from types import GetSetDescriptorType, TracebackType
 
 from .utils.locals import LocalStack  # XXX compat
 
@@ -158,20 +156,20 @@ VT = TypeVar("VT")
 
 
 def _default_cls_attr(
-    name: str, type_: Type, cls_value: Any
-) -> Callable[[Type], GetSetDescriptorType]:
+    name: str, type_: type, cls_value: Any
+) -> Callable[[type], GetSetDescriptorType]:
     # Proxy uses properties to forward the standard
     # class attributes __module__, __name__ and __doc__ to the real
     # object, but these needs to be a string when accessed from
     # the Proxy class directly.  This is a hack to make that work.
     # -- See Issue #1087.
 
-    def __new__(cls: Type, getter: Callable) -> Any:
+    def __new__(cls: type, getter: Callable) -> Any:
         instance = type_.__new__(cls, cls_value)
         instance.__getter = getter  # type: ignore
         return instance
 
-    def __get__(self: Type, obj: Any, cls: Type = None) -> Any:
+    def __get__(self: type, obj: Any, cls: type = None) -> Any:
         return self.__getter(obj) if obj is not None else self
 
     return type(
@@ -187,7 +185,7 @@ def _default_cls_attr(
 class Proxy(Generic[T]):
     """Proxy to another object."""
 
-    __proxy_source__: ClassVar[Optional[Type[T]]] = None
+    __proxy_source__: ClassVar[type[T] | None] = None
 
     # Code initially stolen from werkzeug.local.Proxy.
     if not SLOTS_ISSUE_PRESENT and not PYPY:  # pragma: no cover
@@ -199,17 +197,17 @@ class Proxy(Generic[T]):
             "__dict__",
         )
 
-    def __init_subclass__(self, source: Type[T] = None) -> None:
+    def __init_subclass__(cls, source: type[T] = None) -> None:
         super().__init_subclass__()
         if source is not None:
-            self._init_from_source(source)
-        elif self.__proxy_source__ is not None:
+            cls._init_from_source(source)
+        elif cls.__proxy_source__ is not None:
             # __proxy_source__ must be used on Python < 3.7
             # to work around https://bugs.python.org/issue29581
-            self._init_from_source(self.__proxy_source__)
+            cls._init_from_source(cls.__proxy_source__)
 
     @classmethod
-    def _init_from_source(cls, source: Type[T]) -> None:
+    def _init_from_source(cls, source: type[T]) -> None:
         # source must have metaclass ABCMeta
         abstractmethods = getattr(source, "__abstractmethods__", None)
         if abstractmethods is None:
@@ -218,7 +216,7 @@ class Proxy(Generic[T]):
             setattr(cls, method_name, cls._generate_proxy_method(source, method_name))
 
     @classmethod
-    def _generate_proxy_method(cls, source: Type[T], method_name: str) -> Callable:
+    def _generate_proxy_method(cls, source: type[T], method_name: str) -> Callable:
         @wraps(getattr(source, method_name))
         def _classmethod(self: Proxy[T], *args: Any, **kwargs: Any) -> Any:
             obj = self._get_current_object()
@@ -272,10 +270,10 @@ class Proxy(Generic[T]):
 
     @_default_cls_attr("doc", str, __doc__)
     @no_type_check
-    def __doc__(self) -> Optional[str]:
+    def __doc__(self) -> str | None:
         return cast(str, self._get_current_object().__doc__)
 
-    def _get_class(self) -> Type[T]:
+    def _get_class(self) -> type[T]:
         return self._get_current_object().__class__
 
     @property
@@ -283,7 +281,7 @@ class Proxy(Generic[T]):
         return self._get_class()
 
     @__class__.setter  # noqa: F811
-    def __class__(self, t: Type[T]) -> None:  # noqa: F811
+    def __class__(self, t: type[T]) -> None:  # noqa: F811
         raise NotImplementedError()
 
     def _get_current_object(self) -> T:
@@ -420,8 +418,8 @@ class CoroutineRole(Coroutine[T_co, T_contra, V_co]):
 
     def throw(
         self,
-        typ: Type[BaseException],
-        val: Optional[BaseException] = None,
+        typ: type[BaseException],
+        val: BaseException | None = None,
         tb: TracebackType = None,
     ) -> T_co:
         return self._get_coroutine().throw(typ, val, tb)
@@ -484,8 +482,8 @@ class AsyncGeneratorRole(AsyncGenerator[T_co, T_contra]):
 
     def athrow(
         self,
-        typ: Type[BaseException],
-        val: Optional[BaseException] = None,
+        typ: type[BaseException],
+        val: BaseException | None = None,
         tb: TracebackType = None,
     ) -> Awaitable[T_co]:
         return self._get_generator().athrow(typ, val, tb)
@@ -621,13 +619,13 @@ class SetRole(AbstractSet[T_co]):
     def __and__(self, s: AbstractSet[Any]) -> AbstractSet[T_co]:
         return self._get_set().__and__(s)
 
-    def __or__(self, s: AbstractSet[T]) -> AbstractSet[Union[T_co, T]]:
+    def __or__(self, s: AbstractSet[T]) -> AbstractSet[T_co | T]:
         return self._get_set().__or__(s)
 
     def __sub__(self, s: AbstractSet[Any]) -> AbstractSet[T_co]:
         return self._get_set().__sub__(s)
 
-    def __xor__(self, s: AbstractSet[T]) -> AbstractSet[Union[T_co, T]]:
+    def __xor__(self, s: AbstractSet[T]) -> AbstractSet[T_co | T]:
         return self._get_set().__xor__(s)
 
     def isdisjoint(self, s: Iterable[Any]) -> bool:
@@ -669,13 +667,13 @@ class MutableSetRole(SetRole[T], MutableSet[T]):
     def remove(self, element: T) -> None:
         self._get_set().remove(element)
 
-    def __ior__(self, s: AbstractSet[S]) -> MutableSet[Union[T, S]]:
+    def __ior__(self, s: AbstractSet[S]) -> MutableSet[T | S]:
         return self._get_set().__ior__(s)
 
     def __iand__(self, s: AbstractSet[Any]) -> MutableSet[T]:
         return self._get_set().__iand__(s)
 
-    def __ixor__(self, s: AbstractSet[S]) -> MutableSet[Union[T, S]]:
+    def __ixor__(self, s: AbstractSet[S]) -> MutableSet[T | S]:
         return self._get_set().__ixor__(s)
 
     def __isub__(self, s: AbstractSet[Any]) -> MutableSet[T]:
@@ -713,13 +711,13 @@ class AsyncContextManagerRole(AsyncContextManager[T_co]):
 
     def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
-    ) -> Awaitable[Optional[bool]]:
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> Awaitable[bool | None]:
         obj = self._get_current_object()  # type: ignore
         val = obj.__aexit__(exc_type, exc_value, traceback)
-        return cast(Awaitable[Optional[bool]], val)
+        return cast(Awaitable[bool | None], val)
 
 
 class AsyncContextManagerProxy(
@@ -739,11 +737,11 @@ class MappingRole(Mapping[KT, VT_co]):
         return self._get_mapping().__getitem__(key)
 
     @overload
-    def get(self, k: KT) -> Optional[VT_co]:
+    def get(self, k: KT) -> VT_co | None:
         ...
 
     @overload  # noqa: F811
-    def get(self, k: KT, default: Union[VT_co, T]) -> Union[VT_co, T]:  # noqa: F811
+    def get(self, k: KT, default: VT_co | T) -> VT_co | T:  # noqa: F811
         ...
 
     def get(self, *args: Any, **kwargs: Any) -> Any:  # noqa: F811
@@ -793,7 +791,7 @@ class MutableMappingRole(MappingRole[KT, VT], MutableMapping[KT, VT]):
         ...
 
     @overload  # noqa: F811
-    def pop(self, k: KT, default: Union[VT, T] = ...) -> Union[VT, T]:  # noqa: F811
+    def pop(self, k: KT, default: VT | T = ...) -> VT | T:  # noqa: F811
         ...
 
     def pop(self, *args: Any, **kwargs: Any) -> Any:  # noqa: F811

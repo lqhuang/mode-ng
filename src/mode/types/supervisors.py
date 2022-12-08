@@ -1,7 +1,7 @@
 """Type classes for :mod:`mode.supervisors`."""
 from __future__ import annotations
 
-from typing import Any, Awaitable, Callable, Optional, Type
+from typing import Any, Awaitable, Callable
 
 import abc
 
@@ -19,7 +19,7 @@ class SupervisorStrategyT(ServiceT):
 
     max_restarts: float
     over: float
-    raises: Type[BaseException]
+    raises: type[BaseException]
 
     @abc.abstractmethod
     def __init__(
@@ -27,11 +27,11 @@ class SupervisorStrategyT(ServiceT):
         *services: ServiceT,
         max_restarts: Seconds = 100.0,
         over: Seconds = 1.0,
-        raises: Type[BaseException] = None,
+        raises: type[BaseException] = None,
         replacement: ReplacementT = None,
         **kwargs: Any,
     ) -> None:
-        self.replacement: Optional[ReplacementT] = replacement
+        self.replacement: ReplacementT | None = replacement
 
     @abc.abstractmethod
     def wakeup(self) -> None:

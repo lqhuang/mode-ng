@@ -48,12 +48,13 @@ uvloop
         >>> mode.loop.use('uvloop')
 """
 
+from typing import Mapping
+
 import importlib
-from typing import Mapping, Optional
 
 __all__ = ["LOOPS", "use"]
 
-LOOPS: Mapping[str, Optional[str]] = {
+LOOPS: Mapping[str, str | None] = {
     "aio": None,
     "eventlet": "mode.loop.eventlet",
     "gevent": "mode.loop.gevent",

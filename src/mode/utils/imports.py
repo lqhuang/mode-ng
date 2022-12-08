@@ -1,12 +1,5 @@
 """Importing utilities."""
-import importlib
-import os
-import sys
 import typing
-import warnings
-from contextlib import contextmanager, suppress
-from functools import cached_property
-from types import ModuleType
 from typing import (
     Any,
     Callable,
@@ -17,12 +10,17 @@ from typing import (
     Mapping,
     MutableMapping,
     NamedTuple,
-    Optional,
-    Type,
     TypeVar,
-    Union,
     cast,
 )
+
+import importlib
+import os
+import sys
+import warnings
+from contextlib import contextmanager, suppress
+from functools import cached_property
+from types import ModuleType
 
 from .collections import FastUserDict
 from .text import didyoumean
@@ -55,7 +53,7 @@ __all__ = [
 
 _T = TypeVar("_T")
 _T_contra = TypeVar("_T_contra", contravariant=True)
-SymbolArg = Union[_T, str]
+SymbolArg = _T | str
 
 
 class FactoryMapping(FastUserDict, Generic[_T]):
@@ -95,7 +93,7 @@ class FactoryMapping(FastUserDict, Generic[_T]):
         for name in self.aliases:
             yield self.by_name(name)
 
-    def by_url(self, url: Union[str, URL]) -> _T:
+    def by_url(self, url: str | URL) -> _T:
         """Get class associated with URL (scheme is used as alias key)."""
         # we remove anything after ; so urlparse can recognize the url.
         return self.by_name(URL(url).scheme)
@@ -152,8 +150,8 @@ def _ensure_identifier(path: str, full: str) -> None:
 class ParsedSymbol(NamedTuple):
     """Tuple returned by :func:`parse_symbol`."""
 
-    module_name: Optional[str]
-    attribute_name: Optional[str]
+    module_name: str | None
+    attribute_name: str | None
 
 
 def parse_symbol(
@@ -185,8 +183,8 @@ def parse_symbol(
         >>> parse_symbol('mode.services:Service')
         ParsedSymbol(module_name='mode.services', attribute_name='Service')
     """
-    module_name: Optional[str]
-    attribute_name: Optional[str]
+    module_name: str | None
+    attribute_name: str | None
     partition_by = strict_separator if strict_separator in s else relative_separator
 
     module_name, used_separator, attribute_name = s.rpartition(partition_by)
@@ -290,7 +288,7 @@ def symbol_by_name(
 
 class EntrypointExtension(NamedTuple):
     name: str
-    type: Type
+    type: type
 
 
 class RawEntrypointExtension(NamedTuple):
@@ -317,7 +315,7 @@ def load_extension_classes(namespace: str) -> Iterable[EntrypointExtension]:
     """
     for name, cls_name in load_extension_class_names(namespace):
         try:
-            cls: Type = symbol_by_name(cls_name)
+            cls: type = symbol_by_name(cls_name)
         except (ImportError, SyntaxError) as exc:
             warnings.warn(f"Cannot load {namespace} extension {cls_name!r}: {exc!r}")
         else:

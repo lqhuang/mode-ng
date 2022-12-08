@@ -1,10 +1,11 @@
 """Queue utilities - variations of :class:`asyncio.Queue`."""
-import asyncio
 import typing
+from typing import Any, Callable, TypeVar, cast, no_type_check
+
+import asyncio
 from collections import deque
 from functools import cached_property
 from math import floor
-from typing import Any, Callable, TypeVar, cast, no_type_check
 from weakref import WeakSet
 
 from .locks import Event

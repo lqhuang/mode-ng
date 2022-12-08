@@ -7,16 +7,13 @@ from typing import (
     Any,
     ClassVar,
     ForwardRef,
-    FrozenSet,
     Generic,
     Iterable,
     Mapping,
     MutableMapping,
     MutableSequence,
     MutableSet,
-    Optional,
     Sequence,
-    Type,
     TypeVar,
     cast,
 )
@@ -82,17 +79,15 @@ __all__ = [
 # Workaround for https://bugs.python.org/issue29581
 try:
 
-    @typing.no_type_check  # type: ignore
+    @typing.no_type_check
     class _InitSubclassCheck(metaclass=abc.ABCMeta):
         ident: int
 
-        def __init_subclass__(
-            self, *args: Any, ident: int = 808, **kwargs: Any
-        ) -> None:
-            self.ident = ident
+        def __init_subclass__(cls, *args: Any, ident: int = 808, **kwargs: Any) -> None:
+            cls.ident = ident
             super().__init__(*args, **kwargs)
 
-    @typing.no_type_check  # type: ignore
+    @typing.no_type_check
     class _UsingKwargsInNew(_InitSubclassCheck, ident=909):
         ...
 
@@ -105,25 +100,25 @@ _T = TypeVar("_T")
 RT = TypeVar("RT")
 
 #: Mapping of attribute name to attribute type.
-FieldMapping = Mapping[str, Type]
+FieldMapping = Mapping[str, type]
 
 #: Mapping of attribute name to attributes default value.
 DefaultsMapping = Mapping[str, Any]
 
-SET_TYPES: tuple[Type, ...] = (
+SET_TYPES: tuple[type, ...] = (
     AbstractSet,
-    FrozenSet,
+    frozenset,
     MutableSet,
     set,
     collections.abc.Set,
 )
-LIST_TYPES: tuple[Type, ...] = (
+LIST_TYPES: tuple[type, ...] = (
     list,
     Sequence,
     MutableSequence,
     collections.abc.Sequence,
 )
-DICT_TYPES: tuple[Type, ...] = (
+DICT_TYPES: tuple[type, ...] = (
     dict,
     Mapping,
     MutableMapping,
@@ -131,7 +126,7 @@ DICT_TYPES: tuple[Type, ...] = (
 )
 # XXX cast required for mypy bug
 # "expression has type tuple[_SpecialForm]"
-TUPLE_TYPES: tuple[Type, ...] = cast(tuple[Type, ...], (tuple,))
+TUPLE_TYPES: tuple[type, ...] = cast(tuple[type, ...], (tuple,))
 
 
 class InvalidAnnotation(Exception):
@@ -155,7 +150,7 @@ class Unordered(Generic[_T]):
         return f"<{type(self).__name__}: {self.value!r}>"
 
 
-def _restore_from_keywords(typ: Type, kwargs: dict) -> Any:
+def _restore_from_keywords(typ: type, kwargs: dict) -> Any:
     # This function is used to restore pickled KeywordReduce object.
     return typ(**kwargs)
 
@@ -255,9 +250,9 @@ def _detect_main_name() -> str:  # pragma: no cover
 
 
 def reveal_annotations(
-    cls: Type,
+    cls: type,
     *,
-    stop: Type = object,
+    stop: type = object,
     invalid_types: set = None,
     alias_types: Mapping = None,
     skip_classvar: bool = False,
@@ -306,7 +301,7 @@ def reveal_annotations(
             >>> defaults
             {'z': 0.0}
     """
-    fields: dict[str, Type] = {}
+    fields: dict[str, type] = {}
     defaults: dict[str, Any] = {}
     for subcls in iter_mro_reversed(cls, stop=stop):
         defaults.update(subcls.__dict__)
@@ -325,14 +320,14 @@ def reveal_annotations(
 
 
 def local_annotations(
-    cls: Type,
+    cls: type,
     *,
     invalid_types: set = None,
     alias_types: Mapping = None,
     skip_classvar: bool = False,
     globalns: dict[str, Any] = None,
     localns: dict[str, Any] = None,
-) -> Iterable[tuple[str, Type]]:
+) -> Iterable[tuple[str, type]]:
     return _resolve_refs(
         cls.__annotations__,
         globalns if globalns is not None else _get_globalns(cls),
@@ -350,7 +345,7 @@ def _resolve_refs(
     invalid_types: set = None,
     alias_types: Mapping = None,
     skip_classvar: bool = False,
-) -> Iterable[tuple[str, Type]]:
+) -> Iterable[tuple[str, type]]:
     invalid_types = invalid_types or set()
     alias_types = alias_types or {}
     for k, v in d.items():
@@ -367,7 +362,7 @@ def eval_type(
     localns: dict[str, Any] = None,
     invalid_types: set = None,
     alias_types: Mapping = None,
-) -> Type:
+) -> type:
     """Convert (possible) string annotation to actual type.
 
     Examples:
@@ -390,7 +385,7 @@ def _ForwardRef_safe_eval(
     ref: ForwardRef,
     globalns: dict[str, Any] = None,
     localns: dict[str, Any] = None,
-) -> Type:
+) -> type:
     # On 3.6/3.7 ForwardRef._evaluate crashes if str references ClassVar
     if not ref.__forward_evaluated__:
         if globalns is None and localns is None:
@@ -407,11 +402,11 @@ def _ForwardRef_safe_eval(
     return ref.__forward_value__
 
 
-def _get_globalns(typ: Type) -> dict[str, Any]:
+def _get_globalns(typ: type) -> dict[str, Any]:
     return sys.modules[typ.__module__].__dict__
 
 
-def iter_mro_reversed(cls: Type, stop: Type) -> Iterable[Type]:
+def iter_mro_reversed(cls: type, stop: type) -> Iterable[type]:
     """Iterate over superclasses, in reverse Method Resolution Order.
 
     The stop argument specifies a base class that when seen will
@@ -442,17 +437,17 @@ def iter_mro_reversed(cls: Type, stop: Type) -> Iterable[Type]:
     wanted = False
     for subcls in reversed(cls.__mro__):
         if wanted:
-            yield cast(Type, subcls)
+            yield cast(type, subcls)
         else:
             wanted = subcls == stop
 
 
-def remove_optional(typ: Type) -> Type:
+def remove_optional(typ: type) -> type:
     _, typ = _remove_optional(typ)
     return typ
 
 
-def is_union(typ: Type) -> bool:
+def is_union(typ: type) -> bool:
     name = typ.__class__.__name__
     return any(
         [
@@ -463,22 +458,22 @@ def is_union(typ: Type) -> bool:
     )
 
 
-def is_optional(typ: Type) -> bool:
+def is_optional(typ: type) -> bool:
     if is_union(typ):
         args = getattr(typ, "__args__", ())
         return any([True for arg in args if arg is None or arg is type(None)])  # noqa
     return False
 
 
-def _remove_optional(typ: Type, *, find_origin: bool = False) -> tuple[List[Any], Type]:
+def _remove_optional(typ: type, *, find_origin: bool = False) -> tuple[List[Any], type]:
     args = getattr(typ, "__args__", ())
     if is_union(typ):
         # 3.7+: Optional[List[int]] -> Union[List[int], NoneType]
         # 3.6:  Optional[List[int]] -> Union[List[int], type(None)]
         # returns: ((int,), list)
         found_None = False
-        union_type_args: Optional[list] = None
-        union_type: Optional[Type] = None
+        union_type_args: list | None = None
+        union_type: type | None = None
         for arg in args:
             if arg is None or arg is type(None):  # noqa
                 found_None = True
@@ -500,22 +495,22 @@ def _remove_optional(typ: Type, *, find_origin: bool = False) -> tuple[List[Any]
     return args, typ
 
 
-def _py36_maybe_unwrap_GenericMeta(typ: Type) -> Type:
+def _py36_maybe_unwrap_GenericMeta(typ: type) -> type:
     if typ.__class__.__name__ == "GenericMeta":  # Py3.6
         orig_bases = typ.__orig_bases__
         if orig_bases and orig_bases[0] in (list, tuple, dict, set):
-            return cast(Type, orig_bases[0])
-    return cast(Type, getattr(typ, "__origin__", typ))
+            return cast(type, orig_bases[0])
+    return cast(type, getattr(typ, "__origin__", typ))
 
 
 def guess_polymorphic_type(
-    typ: Type,
+    typ: type,
     *,
-    set_types: tuple[Type, ...] = SET_TYPES,
-    list_types: tuple[Type, ...] = LIST_TYPES,
-    tuple_types: tuple[Type, ...] = TUPLE_TYPES,
-    dict_types: tuple[Type, ...] = DICT_TYPES,
-) -> tuple[Type, Type]:
+    set_types: tuple[type, ...] = SET_TYPES,
+    list_types: tuple[type, ...] = LIST_TYPES,
+    tuple_types: tuple[type, ...] = TUPLE_TYPES,
+    dict_types: tuple[type, ...] = DICT_TYPES,
+) -> tuple[type, type]:
     """Try to find the polymorphic and concrete type of an abstract type.
 
     Returns tuple of ``(polymorphic_type, concrete_type)``.
@@ -550,7 +545,7 @@ def guess_polymorphic_type(
 guess_concrete_type = guess_polymorphic_type  # XXX compat
 
 
-def _unary_type_arg(args: list[Type]) -> Any:
+def _unary_type_arg(args: list[type]) -> Any:
     return args[0] if args else Any
 
 
@@ -567,8 +562,8 @@ def shortlabel(s: Any) -> str:
 def _label(
     label_attr: str,
     s: Any,
-    pass_types: tuple[Type, ...] = (str,),
-    str_types: tuple[Type, ...] = (str, int, float, Decimal),
+    pass_types: tuple[type, ...] = (str,),
+    str_types: tuple[type, ...] = (str, int, float, Decimal),
 ) -> str:
     if isinstance(s, pass_types):
         return cast(str, s)

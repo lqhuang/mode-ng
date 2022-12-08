@@ -9,10 +9,10 @@ Celery, and other libraries to keep a thread-local stack of objects.
 
         request_stack: LocalStack[Request] = LocalStack()
 """
+from typing import Generator, Generic, Sequence, TypeVar
 
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Generator, Generic, Optional, Sequence, TypeVar
 
 __all__ = ["LocalStack"]
 
@@ -57,7 +57,7 @@ class LocalStack(Generic[T]):
             self._stack.set(stack)
         stack.append(obj)
 
-    def pop(self) -> Optional[T]:
+    def pop(self) -> T | None:
         """Remove the topmost item from the stack.
 
         Note:
@@ -88,7 +88,7 @@ class LocalStack(Generic[T]):
         return self._stack.get(None) or []
 
     @property
-    def top(self) -> Optional[T]:
+    def top(self) -> T | None:
         """Return the topmost item on the stack.
 
         Does not remove it from the stack.

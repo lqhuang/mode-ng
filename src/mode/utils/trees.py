@@ -1,5 +1,5 @@
 """Data structure: Trees."""
-from typing import Any, Deque, Iterator, Optional, TypeVar, Union, cast
+from typing import Any, Deque, Iterator, TypeVar, cast
 
 from contextlib import suppress
 
@@ -35,8 +35,8 @@ class Node(NodeT[T]):
         children (list[NodeT]): List of child nodes.
     """
 
-    _root: Optional[NodeT[T]] = None
-    _parent: Optional[NodeT[T]] = None
+    _root: NodeT[T] | None = None
+    _parent: NodeT[T] | None = None
 
     @classmethod
     def _new_node(cls, data: T, **kwargs: Any) -> NodeT[T]:
@@ -82,11 +82,11 @@ class Node(NodeT[T]):
         self._root = None
         return self
 
-    def add_deduplicate(self, data: Union[T, NodeT[T]]) -> None:
+    def add_deduplicate(self, data: T | NodeT[T]) -> None:
         if data not in self.children:
             self.children.append(data)
 
-    def add(self, data: Union[T, NodeT[T]]) -> None:
+    def add(self, data: T | NodeT[T]) -> None:
         """Add node as a child node."""
         self.children.append(data)
 
@@ -113,7 +113,7 @@ class Node(NodeT[T]):
 
         This will yield parent nodes all the way up to the root.
         """
-        node: Optional[NodeT[T]] = self
+        node: NodeT[T] | None = self
         while node:
             yield node
             node = node.parent
@@ -148,7 +148,7 @@ class Node(NodeT[T]):
         return "/".join(reversed([shortlabel(node.data) for node in self.walk()]))
 
     @property
-    def parent(self) -> Optional[NodeT]:
+    def parent(self) -> NodeT | None:
         return self._parent
 
     @parent.setter
@@ -158,7 +158,7 @@ class Node(NodeT[T]):
         self._parent = node
 
     @property
-    def root(self) -> Optional[NodeT]:
+    def root(self) -> NodeT | None:
         return self._root
 
     @root.setter

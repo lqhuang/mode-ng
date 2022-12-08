@@ -1,5 +1,5 @@
 """Async I/O Future utilities."""
-from typing import Any, Callable, NoReturn, Type
+from typing import Any, Callable, NoReturn
 
 import asyncio
 from asyncio.events import AbstractEventLoop
@@ -93,7 +93,7 @@ class stampede:
         # here to support inspect.signature
         raise NotImplementedError()
 
-    def __get__(self, obj: Any, type: Type = None) -> Any:
+    def __get__(self, obj: Any, type: type = None) -> Any:
         if obj is None:
             return self
         try:

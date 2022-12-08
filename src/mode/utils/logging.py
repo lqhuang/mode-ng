@@ -15,8 +15,6 @@ from typing import (
     NamedTuple,
     Protocol,
     TextIO,
-    Type,
-    Union,
     cast,
 )
 
@@ -153,7 +151,7 @@ def create_logconfig(
 #: Set by ``setup_logging`` if logging target file is a TTY.
 LOG_ISATTY: bool = False
 
-Severity = Union[int, str]
+Severity = int | str
 
 FormatterHandler = Callable[[Any], Any]
 FormatterHandler2 = Callable[[Any, logging.LogRecord], Any]
@@ -530,7 +528,7 @@ def _setup_logging(
             logging.root.addHandler(handler)
 
 
-class Logwrapped(object):
+class Logwrapped:
     """Wrap all object methods, to log on call."""
 
     obj: Any
@@ -868,7 +866,7 @@ class flight_recorder(ContextManager, LogSeverityMixin):
 
     def __exit__(
         self,
-        exc_type: Type[BaseException] = None,
+        exc_type: type[BaseException] = None,
         exc_val: BaseException = None,
         exc_tb: TracebackType = None,
     ) -> bool | None:
@@ -1018,7 +1016,7 @@ class FileLogProxy(TextIO):
 
     def __exit__(
         self,
-        exc_type: Type[BaseException] = None,
+        exc_type: type[BaseException] = None,
         exc_val: BaseException = None,
         exc_tb: TracebackType = None,
     ) -> None:
