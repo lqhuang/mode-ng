@@ -43,7 +43,7 @@ namespaces = false
 mode = ["py.typed"]
 
 # ========================
-#          MYPY
+#     MYPY
 # ========================
 
 [tool.mypy]
@@ -97,7 +97,17 @@ check_untyped_defs = true
 disallow_untyped_calls = false
 
 # ========================
-#          BLACK
+#     Pyright (pylance)
+# ========================
+
+[tool.pyright]
+# https://github.com/microsoft/pyright/blob/main/docs/configuration.md#main-pyright-config-options
+typeCheckingMode = "basic"
+reportGeneralTypeIssues = false
+# reportPrivateUsage = false
+
+# ========================
+#     black & isort
 # ========================
 
 # NOTE: you have to use single-quoted strings in TOML for regular expressions.
@@ -134,20 +144,16 @@ known_typing = "typing"
 known_first_party = "mode"
 sections = "FUTURE,TYPING,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 
-# [tool.bandit]
-# # B101: assert_used
-# # B104: hardcoded_bind_all_interfaces
-# skips = ["B101", "B104"]
-
 # ========================
-#     Pyright (pylance)
+#     docformatter
 # ========================
 
-[tool.pyright]
-# https://github.com/microsoft/pyright/blob/main/docs/configuration.md#main-pyright-config-options
-typeCheckingMode = "basic"
-reportGeneralTypeIssues = false
-# reportPrivateUsage = false
+[tool.docformatter]
+recursive = true
+syntax = "google"      # One of sphinx, numpy, or google
+black = true           # Formats docstrings to be compatible with black.
+wrap-summaries = 72    # PEP8: comments and docstrings are still wrapped at 72 characters
+wrap-descriptions = 72
 
 # ========================
 #     Ruff
@@ -179,8 +185,13 @@ ignore-init-module-imports = true
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"] # imported but unused
 
+# [tool.bandit]
+# # B101: assert_used
+# # B104: hardcoded_bind_all_interfaces
+# skips = ["B101", "B104"]
+
 # ========================
-#          Pytest
+#     Pytest
 # ========================
 
 [tool.pytest.ini_options]

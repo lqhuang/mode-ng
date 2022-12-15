@@ -5,6 +5,7 @@ black
 isort
 ruff
 pipdeptree
+pre-commit
 
 # For debugging
 aiomonitor
