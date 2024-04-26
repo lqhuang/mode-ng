@@ -3,4 +3,3 @@ freezegun>=1.2.0
 pytest-asyncio
 pytest
 pytest-mypy-plugins
-
