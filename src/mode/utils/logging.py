@@ -1,17 +1,14 @@
 """Logging utilities."""
+
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from typing import (
     IO,
     Any,
     AnyStr,
     BinaryIO,
-    Callable,
     ClassVar,
-    ContextManager,
-    Iterable,
-    Iterator,
-    Mapping,
     NamedTuple,
     Protocol,
     TextIO,
@@ -29,7 +26,7 @@ import time
 import traceback
 from abc import abstractmethod
 from asyncio import AbstractEventLoop, all_tasks, current_task
-from contextlib import ExitStack, contextmanager
+from contextlib import AbstractContextManager, ExitStack, contextmanager
 from functools import singledispatch, wraps
 from itertools import count
 from logging import Logger
@@ -89,11 +86,14 @@ LOG_RECORD_BUILTINS: set[str] = {
     "stack_info",
     "thread",
     "threadName",
+    "taskName",
 }
 
-DEFAULT_FORMAT: str = """
+DEFAULT_FORMAT: str = (
+    """
 [%(asctime)s] [%(process)d:%(thread)d] [%(levelname)s]: %(message)s %(extra)s
 """.strip()
+)
 
 DEFAULT_COLOR_FORMAT = """
 [%(asctime)s] [%(process)d:%(thread)d] [%(levelname)s] %(log_color)s%(message)s %(extra)s
@@ -188,8 +188,7 @@ class LogSeverityMixin(Protocol):
     """
 
     @abstractmethod
-    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
-        ...
+    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None: ...
 
     def dev(self, message: str, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("stacklevel", 3)
@@ -656,7 +655,7 @@ class LogMessage(NamedTuple):
     kwargs: dict[str, Any]
 
 
-class flight_recorder(ContextManager, LogSeverityMixin):
+class flight_recorder(AbstractContextManager, LogSeverityMixin):
     """Flight Recorder context for use with :keyword:`with` statement.
 
     This is a logging utility to log stuff only when something
@@ -954,8 +953,7 @@ class FileLogProxy(TextIO):
     def newlines(self) -> bool:
         return False
 
-    def flush(self) -> None:
-        ...
+    def flush(self) -> None: ...
 
     @property
     def mode(self) -> str:
@@ -1019,8 +1017,7 @@ class FileLogProxy(TextIO):
         exc_type: type[BaseException] = None,
         exc_val: BaseException = None,
         exc_tb: TracebackType = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 @contextmanager

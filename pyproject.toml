@@ -140,7 +140,7 @@ extend-exclude = '''
 [tool.isort]
 profile = "black"
 # line_length = 79
-known_typing = "typing"
+known_typing = ["typing", "typing_extensions", "collections.abc"]
 known_first_party = "mode"
 sections = "FUTURE,TYPING,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 

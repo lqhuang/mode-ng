@@ -6,17 +6,8 @@ required to start and manage services in a process environment.
 
 from __future__ import annotations
 
-from typing import (
-    IO,
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    ClassVar,
-    Iterable,
-    Iterator,
-    NoReturn,
-    cast,
-)
+from collections.abc import Callable, Iterable, Iterator
+from typing import IO, TYPE_CHECKING, Any, ClassVar, NoReturn, cast
 
 import asyncio
 import logging as _logging
@@ -369,7 +360,9 @@ class Worker(Service):
         for task in all_tasks(loop=self.loop):
             task.cancel()
 
-    async def on_started(self) -> None: ...
+    async def on_started(self) -> None:
+        if self.daemon:
+            await self.wait_until_stopped()
 
     async def _add_monitor(self) -> Any:
         try:
