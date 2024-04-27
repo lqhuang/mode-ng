@@ -1,28 +1,28 @@
 """Async I/O services that can be started/stopped/shutdown."""
 
-from typing import (
-    Any,
-    AsyncContextManager,
+from collections.abc import (
     AsyncIterator,
     Awaitable,
     Callable,
-    ClassVar,
-    ContextManager,
     Coroutine,
     Iterable,
     Mapping,
     MutableSequence,
-    NamedTuple,
     Sequence,
-    cast,
 )
+from typing import Any, ClassVar, NamedTuple, cast
 
 import asyncio
 import logging
 import sys
 from asyncio.events import AbstractEventLoop
 from asyncio.locks import Event
-from contextlib import AsyncExitStack, ExitStack
+from contextlib import (
+    AbstractAsyncContextManager,
+    AbstractContextManager,
+    AsyncExitStack,
+    ExitStack,
+)
 from datetime import tzinfo
 from functools import wraps
 from time import monotonic, perf_counter
@@ -618,17 +618,17 @@ class Service(ServiceBase, ServiceCallbacks):
             service.beacon.detach(self.beacon)
         return service
 
-    async def add_async_context(self, context: AsyncContextManager) -> Any:
-        if isinstance(context, AsyncContextManager):
+    async def add_async_context(self, context: AbstractAsyncContextManager) -> Any:
+        if isinstance(context, AbstractAsyncContextManager):
             return await self.async_exit_stack.enter_async_context(context)
-        elif isinstance(context, ContextManager):  # type: ignore
+        elif isinstance(context, AbstractContextManager):  # type: ignore
             raise TypeError("Use `self.add_context(ctx)` for non-async context")
         raise TypeError(f"Not a context/async context: {type(context)!r}")
 
-    def add_context(self, context: ContextManager) -> Any:
-        if isinstance(context, AsyncContextManager):
+    def add_context(self, context: AbstractContextManager) -> Any:
+        if isinstance(context, AbstractAsyncContextManager):
             raise TypeError("Use `await self.add_async_context(ctx)` for async context")
-        elif isinstance(context, ContextManager):
+        elif isinstance(context, AbstractContextManager):
             return self.exit_stack.enter_context(context)
         raise TypeError(f"Not a context/async context: {type(context)!r}")
 
@@ -844,13 +844,27 @@ class Service(ServiceBase, ServiceCallbacks):
                 await self.on_started()
 
                 # # Good enough, but worker will be broken due to eternal loop
-                # while self._futures:
-                #     await self.wait_until_stopped()
+                while True:
+                    for child in self._children:
+                        if not child._stopped.is_set() and child._is_taskq_empty():
+                            await child.stop()
+
+                    all_children_stopped = all(
+                        child._stopped.is_set() for child in self._children
+                    )
+
+                    if all_children_stopped:
+                        break
+                    else:
+                        await asyncio.sleep(0.01)
 
             except BaseException:
                 self.exit_stack.__exit__(*sys.exc_info())
                 await self.async_exit_stack.__aexit__(*sys.exc_info())
                 raise
+
+    def _is_taskq_empty(self) -> bool:
+        return not self._futures
 
     async def _execute_task(self, task: Awaitable) -> None:
         try:
@@ -926,7 +940,7 @@ class Service(ServiceBase, ServiceCallbacks):
             await self._stop_futures()
             await self._stop_exit_stacks()
             await self.on_shutdown()
-            self.log.debug("-Stopped!")
+            self.log.info("Stopped!")
 
     def _stopped_set(self) -> None:
         self._stopped.set()
@@ -999,8 +1013,9 @@ class Service(ServiceBase, ServiceCallbacks):
         await self.on_restart()
         await self.start()
 
-    def service_reset(self) -> None:
-        self.restart_count += 1
+    def service_reset(self, restart: bool = True) -> None:
+        if restart:
+            self.restart_count += 1
         for ev in (
             self._started,
             self._stopped,
@@ -1009,9 +1024,13 @@ class Service(ServiceBase, ServiceCallbacks):
         ):
             ev.clear()
         self.crash_reason = None
+
+        # Breaking change
+        self._children.clear()
+
         for child in self._children:
             if child is not None:
-                child.service_reset()
+                child.service_reset(restart)
 
     async def wait_until_stopped(self) -> None:
         """Wait until the service is signalled to stop."""

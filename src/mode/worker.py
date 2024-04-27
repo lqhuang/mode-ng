@@ -275,7 +275,6 @@ class Worker(Service):
         raise SystemExit(EX_OK)
 
     def start_system(self) -> None:
-        self.service_reset()
         self.restart_count = 0  # FIXME: hacky way to reset restart count
         self._starting_fut = asyncio.ensure_future(self.start(), loop=self.loop)
 
@@ -306,6 +305,8 @@ class Worker(Service):
             self.log.info("Gathering service tasks...")
             with suppress(asyncio.CancelledError):
                 await self._gather_futures()
+
+            self.service_reset(restart=False)
 
     async def on_worker_shutdown(self) -> None: ...
 
@@ -363,6 +364,21 @@ class Worker(Service):
     async def on_started(self) -> None:
         if self.daemon:
             await self.wait_until_stopped()
+        else:
+            while True:
+                for child in self.services:
+                    if not child._stopped.is_set() and child._is_taskq_empty():
+                        await child.stop()
+                    else:
+                        break
+
+                all_stopped = all(child._stopped.is_set() for child in self._children)
+                if all_stopped:
+                    break
+                else:
+                    await asyncio.sleep(0.01)
+
+            self._schedule_shutdown(signal.SIGINT)
 
     async def _add_monitor(self) -> Any:
         try:
