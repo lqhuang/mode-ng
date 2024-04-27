@@ -1,4 +1,5 @@
 """Async I/O services that can be started/stopped/shutdown."""
+
 from typing import (
     Any,
     AsyncContextManager,
@@ -809,8 +810,7 @@ class Service(ServiceBase, ServiceCallbacks):
         await self._default_start()
 
     async def _default_start(self) -> None:
-        loop = self.loop
-        assert loop  # make sure loop is set
+        assert self.loop  # make sure loop is set
         assert not self._started.is_set()
         self._started.set()
         await self._actually_start()
@@ -842,6 +842,11 @@ class Service(ServiceBase, ServiceCallbacks):
                         break
                 self.log.debug("Started.")
                 await self.on_started()
+
+                # # Good enough, but worker will be broken due to eternal loop
+                # while self._futures:
+                #     await self.wait_until_stopped()
+
             except BaseException:
                 self.exit_stack.__exit__(*sys.exc_info())
                 await self.async_exit_stack.__aexit__(*sys.exc_info())

@@ -1,6 +1,6 @@
 PROJ ?= src/mode-ng
 PGPIDENT ?= "Lanqing Huang"
-PYTHON ?= python
+PYTHON ?= python3
 PYTEST ?= pytest
 PIP ?= ${PYTHON} -m pip
 GIT ?= git
@@ -108,7 +108,7 @@ dist: readme contrib clean-dist build
 # ------------------------- Dev setup ----------------------------------------
 .PHONY: venv
 venv:
-	${PYTHON} -m venv .venv --clear
+	${PYTHON} -m venv .venv
 
 .PHONY: deps-default
 deps-default:

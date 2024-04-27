@@ -10,9 +10,11 @@ class MyService(mode.Service):
     @mode.Service.task
     async def _background_task(self) -> None:
         print("BACKGROUND TASK STARTING")
-        while not self.should_stop:
+        t = 0.0
+        while not self.should_stop and t < 5.0:
             await self.sleep(1.0)
-            print("BACKGROUND SERVICE WAKING UP")
+            t += 1.0
+            print(f"BACKGROUND SERVICE WAKING UP, current {t=}")
 
 
 async def main():
@@ -21,7 +23,7 @@ async def main():
         log_level="INFO",
         log_file=None,  # stderr
         # when daemon the worker must be explicitly stopped to end.
-        daemon=True,
+        # daemon=True,
     )
     worker.start_system()
     await worker.join()

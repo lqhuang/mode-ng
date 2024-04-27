@@ -3,6 +3,7 @@
 Workers add signal handling, logging, and other things
 required to start and manage services in a process environment.
 """
+
 from __future__ import annotations
 
 from typing import (
@@ -103,7 +104,7 @@ class Worker(Service):
     _signal_stop_time: float | None = None
     _signal_stop_future: asyncio.Future | None = None
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         *services: ServiceT,
         debug: bool = False,
@@ -177,8 +178,7 @@ class Worker(Service):
             await self._add_monitor()
         self.install_signal_handlers()
 
-    async def on_execute(self) -> None:
-        ...
+    async def on_execute(self) -> None: ...
 
     def _setup_logging(self) -> None:
         _loglevel: int = 0
@@ -212,8 +212,7 @@ class Worker(Service):
     def _redirect_stdouts(self) -> None:
         self.add_context(logging.redirect_stdouts(severity=self.redirect_stdouts_level))
 
-    def on_setup_root_logger(self, logger: Logger, level: int) -> None:
-        ...
+    def on_setup_root_logger(self, logger: Logger, level: int) -> None: ...
 
     async def maybe_start_blockdetection(self) -> None:
         if self.debug:
@@ -280,10 +279,13 @@ class Worker(Service):
                 pass
             finally:
                 self._shutdown_loop()
+                self.log.info("Worker shutdown completely.")
         # for mypy NoReturn
         raise SystemExit(EX_OK)
 
     def start_system(self) -> None:
+        self.service_reset()
+        self.restart_count = 0  # FIXME: hacky way to reset restart count
         self._starting_fut = asyncio.ensure_future(self.start(), loop=self.loop)
 
     async def join(self) -> None:
@@ -304,10 +306,17 @@ class Worker(Service):
         finally:
             maybe_cancel(self._starting_fut)
             await self.on_worker_shutdown()
-            await self.stop_and_shutdown()
 
-    async def on_worker_shutdown(self) -> None:
-        ...
+            # check stoped or not, if not, stop it.
+            if not self._shutdown.is_set():
+                await self.stop()
+
+            # Gather futures created by us.
+            self.log.info("Gathering service tasks...")
+            with suppress(asyncio.CancelledError):
+                await self._gather_futures()
+
+    async def on_worker_shutdown(self) -> None: ...
 
     async def stop_and_shutdown(self) -> None:
         if self._signal_stop_future and not self._signal_stop_future.done():
@@ -360,9 +369,7 @@ class Worker(Service):
         for task in all_tasks(loop=self.loop):
             task.cancel()
 
-    async def on_started(self) -> None:
-        if self.daemon:
-            await self.wait_until_stopped()
+    async def on_started(self) -> None: ...
 
     async def _add_monitor(self) -> Any:
         try:
