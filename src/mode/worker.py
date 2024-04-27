@@ -215,6 +215,12 @@ class Worker(Service):
         else:
             self._install_signal_handlers_unix()
 
+    def uninstall_signal_handlers(self) -> None:
+        if sys.platform == "win32":
+            raise NotImplementedError("Windows does not support uninstalling signals")
+        else:
+            self._uninstall_signal_handlers_unix()
+
     def _install_signal_handlers_windows(self) -> None:
         signal.signal(signal.SIGTERM, self._on_win_sigterm)
 
@@ -223,6 +229,12 @@ class Worker(Service):
         self.loop.add_signal_handler(signal.SIGTERM, self._on_sigterm)
         self.loop.add_signal_handler(signal.SIGUSR1, self._on_sigusr1)
         self.loop.add_signal_handler(signal.SIGUSR2, self._on_sigusr2)
+
+    def _uninstall_signal_handlers_unix(self) -> None:
+        self.loop.remove_signal_handler(signal.SIGINT)
+        self.loop.remove_signal_handler(signal.SIGTERM)
+        self.loop.remove_signal_handler(signal.SIGUSR1)
+        self.loop.remove_signal_handler(signal.SIGUSR2)
 
     def _on_sigint(self) -> None:
         self.carp("-INT- -INT- -INT- -INT- -INT- -INT-")
@@ -306,6 +318,7 @@ class Worker(Service):
             with suppress(asyncio.CancelledError):
                 await self._gather_futures()
 
+            self.uninstall_signal_handlers()
             self.service_reset(restart=False)
 
     async def on_worker_shutdown(self) -> None: ...
