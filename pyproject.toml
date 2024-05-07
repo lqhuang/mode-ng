@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mode-ng"
-version = "0.6.1"
+version = "0.7.0.dev0"
 description = "AsyncIO Service-based programming."
 readme = "README.rst"
 requires-python = ">=3.10"
@@ -22,6 +22,7 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: CPython",
   "Operating System :: POSIX",
   "Operating System :: Microsoft :: Windows",
